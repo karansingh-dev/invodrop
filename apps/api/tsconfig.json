@@ -1,0 +1,24 @@
+{
+  "extends": "@repo/typescript-config/base.json",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@/*": ["./src/*"]
+
+      //       //   "@/types/*": ["./src/types/*"],
+      //       //   "@/utils/*": ["./src/utils/*"],
+      //       //   "@/services/*": ["./src/services/*"],
+      //       //   "@/middleware/*": ["./src/middleware/*"],
+      //       //   "@/routes/*": ["./src/routes/*"]
+    }
+  },
+  "include": ["src/**/*.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.test.ts",
+    "**/*.spec.ts",
+    "coverage"
+  ]
+}
