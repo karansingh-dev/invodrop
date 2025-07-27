@@ -12,3 +12,334 @@ model Test {
   id   Int    @id @default(autoincrement())
   name String @unique
 }
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ClientStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum ProductType {
+  PHYSICAL_GOOD
+  SERVICE
+}
+
+enum InvoiceStatus {
+  DRAFT
+  PENDING
+  PAID
+  OVERDUE
+  CANCELLED
+  PARTIALLY_PAID
+}
+
+model User {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Neccessary
+  email        String @unique @db.VarChar(100)
+  passwordHash String @map("password_hash") @db.VarChar(100)
+
+  // General information
+  firstName String @map("first_name") @db.VarChar(50)
+  lastName  String @map("last_name") @db.VarChar(50)
+
+  // Access
+  role Role
+
+  // Other information
+  onboardingCompleted Boolean @default(false) @map("onboarding_completed")
+
+  // Verification
+  isEmailVerified           Boolean  @default(false) @map("is_email_verified")
+  verificationCode          String   @map("verification_code") @db.VarChar(10)
+  verificationCodeExpiresAt DateTime @map("verification_code_expires_at")
+
+  // System related
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
+
+  //Relations
+  company     Company?
+  paymentTerm PaymentTerm[]
+  client      Client[]
+  product     Product[]
+  tax         Tax[]
+  invoice     Invoice[]
+  payment     Payment[]
+
+  @@map("user")
+}
+
+model Company {
+  userId String @id @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Company details
+  companyName String @map("company_name") @db.VarChar(255)
+
+  // Address
+  addressLine1 String  @map("address_line_1") @db.VarChar(255)
+  addressLine2 String? @map("address_line_2") @db.VarChar(255)
+  city         String  @db.VarChar(255)
+  state        String  @db.VarChar(50)
+  country      String  @db.VarChar(100)
+  postalCode   String  @db.VarChar(15)
+
+  //Optionals
+  taxId              String? @map("tax_number") @db.VarChar(30) // Vat, Gst etc.
+  email              String? @db.VarChar(100)
+  phone              String? @db.VarChar(20)
+  website            String? @db.VarChar(255)
+  logoUrl            String? @map("logo_url") @db.VarChar(255)
+  defaultPaymentDays Int     @default(30) @map("default_payment_days")
+  defaultInvoiceNote String? @map("default_invoice_note") @db.Text
+
+  // System related
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("company")
+}
+
+model PaymentTerm {
+  id           String @id @default(uuid()) @db.Uuid
+  userId       String @map("user_id") @db.Uuid
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  numberofDays Int    @map("number_of_days")
+}
+
+model Client {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name String @db.VarChar(255)
+
+  //Contact information
+  email             String @db.VarChar(100)
+  contactPersonName String @map("contact_person_name") @db.VarChar(50)
+  phone             String @db.VarChar(20)
+
+  // Billing Address (Required)
+  billingAddressLine1 String  @map("billing_address_line_1") @db.VarChar(255)
+  billingAddressLine2 String? @map("billing_address_line_2") @db.VarChar(255)
+  billingCity         String  @map("billing_city") @db.VarChar()
+  billingState        String  @map("billing_state")
+  billingPostalCode   String  @map("billing_postal_code")
+  billingCountry      String  @map("billing_country")
+
+  // Shipping Address (Optional - defaults to billing)
+  shippingAddressLine1  String? @map("shipping_address_line_1")
+  shippingAddressLine2  String? @map("shipping_address_line_2")
+  shippingCity          String? @map("shipping_city")
+  shippingState         String? @map("shipping_state")
+  shippingPostalCode    String? @map("shipping_postal_code")
+  shippingCountry       String? @map("shipping_country")
+  shippingSameAsBilling Boolean @default(true) @map("shipping_same_as_billing")
+
+  //optional
+  taxId   String? @db.VarChar(30)
+  website String? @db.VarChar(100)
+
+  // Analytics 
+  invoiceCount      Int     @default(0) @map("invoice_count")
+  totalBilledAmount Decimal @default(0) @map("total_billed_amount") @db.Decimal(10, 2)
+
+  //Status
+  status ClientStatus
+
+  // System 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  //Relations 
+  invoice Invoice[]
+
+  // Composite unique contraints
+  @@unique([userId, email])
+  // Table name
+  @@map("client")
+}
+
+model Product {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Details
+  type        ProductType
+  name        String      @db.VarChar(50)
+  description String?     @db.Text
+
+  // Prices
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+
+  // Extras
+  isActive Boolean @default(true) @map("is_active")
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("product")
+}
+
+model Tax {
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  name  String  @db.VarChar(20)
+  value Decimal @db.Decimal(10, 4)
+
+  isDefault Boolean @map("is_default")
+
+  // System 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+
+  @@map("tax")
+}
+
+model Invoice {
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @map("user_id") @db.Uuid
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId String @map("client_id") @db.Uuid
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  //Essential Components
+  invoiceNumber String        @map("invoice_number") @db.VarChar(20)
+  status        InvoiceStatus
+  issueDate     DateTime      @map("issue_date")
+  dueDate       DateTime      @map("due_date")
+
+  subTotal   Decimal @map("sub_total") @db.Decimal(10, 2)
+  grandTotal Decimal @map("grand_total") @db.Decimal(10, 2)
+  taxPercent Decimal @map("tax_percent") @db.Decimal(10, 2)
+  taxAmount  Decimal @map("tax_amount") @db.Decimal(10, 2)
+
+  amountPaid Decimal @map("amount_paid") @db.Decimal(10, 2)
+  balanceDue Decimal @map("balance_due") @db.Decimal(10, 2)
+
+  paymentTerm String? @map("payment_term") @db.Text
+  footerNote  String? @map("footer_note") @db.Text
+
+  //Relations
+  invoiceItem InvoiceItem[]
+  payment     Payment[]
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+}
+
+model InvoiceItem {
+  id String @id @default(uuid()) @db.Uuid
+
+  invoiceId String  @map("invoice_id") @db.Uuid
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  name        String  @db.VarChar(20)
+  description String? @db.VarChar(100)
+
+  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
+  quantity  Int     @db.Integer
+
+  taxPercent Decimal? @map("tax_percent") @db.Decimal(10, 2)
+  taxAmout   Decimal? @map("tax_amount") @db.Decimal(10, 2)
+
+  totalAmount Decimal @db.Decimal(10, 2)
+
+  // System 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @default(now()) @map("updated_at")
+}
+
+enum PaymentMethod {
+  CASH
+  CHECK
+  BANK_TRANSFER
+  WIRE_TRANSFER
+  // ACH
+  // MOBILE_PAYMENT // UPI, Venmo,
+  // CREDIT_CARD // Future: Stripe, Square
+  // PAYPAL // Future: PayPal integration
+  // CRYPTOCURRENCY // Future: crypto payments
+  OTHER
+}
+
+enum PaymentStatus {
+  PENDING // Initiated but not confirmed
+  // PROCESSING // Being processed (future: payment gateway)
+  COMPLETED // Successfully received
+  // FAILED // Processing failed
+  CANCELLED // User cancelled
+  REFUNDED // Full refund issued
+  // PARTIALLY_REFUNDED // Partial refund
+  // DISPUTED // Chargeback/dispute
+}
+
+enum PaymentProvider {
+  MANUAL // User manually recorded
+  // STRIPE // Future: Stripe integration
+  // PAYPAL // Future: PayPal integration
+  // RAZORPAY // Future: India market
+  // SQUARE // Future: in-person payments
+  // BANK_INTEGRATION // Future: bank API
+  // OTHER
+}
+
+model Payment {
+  id        String @id @default(uuid()) @db.Uuid
+  invoiceId String @map("invoice_id") @db.Uuid
+  userId    String @map("user_id") @db.Uuid
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  amount Decimal @db.Decimal(10, 2)
+
+  // exchangeRate Decimal? @db.Decimal(10, 6) // For currency conversion
+
+  // 🔧 PAYMENT DETAILS
+  method   PaymentMethod
+  status   PaymentStatus   @default(PENDING)
+  provider PaymentProvider
+
+  // MANUAL PAYMENT FIELDS 
+  referenceNumber String? @map("reference_number") @db.VarChar(100)
+  description     String? @db.Text
+
+  // // 🔌 PROVIDER INTEGRATION FIELDS (Future-Ready)
+  // providerPaymentId String?  @map("provider_payment_id") @db.VarChar(100)
+  // providerFee       Decimal? @map("provider_fee") @db.Decimal(10, 2) 
+  // providerResponse  Json?    @map("provider_response") 
+
+  // // ⚡ PROCESSING METADATA
+  // processedAt   DateTime? @map("processed_at")
+  // failureReason String?   @map("failure_reason") @db.Text
+  // retryCount    Int       @default(0) @map("retry_count")
+
+  // verifiedAt   DateTime? @map("verified_at")
+  // verifiedBy   String?   @map("verified_by") @db.Uuid
+  // reconciledAt DateTime? @map("reconciled_at")
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+  // createdBy String?  @map("created_by") @db.Uuid // Who recorded this payment
+
+  @@index([invoiceId])
+  @@index([userId, status])
+  @@map("payment")
+}
