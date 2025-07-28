@@ -8,11 +8,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Test {
-  id   Int    @id @default(autoincrement())
-  name String @unique
-}
-
 enum Role {
   ADMIN
   USER
@@ -35,233 +30,6 @@ enum InvoiceStatus {
   OVERDUE
   CANCELLED
   PARTIALLY_PAID
-}
-
-model User {
-  id String @id @default(uuid()) @db.Uuid
-
-  // Neccessary
-  email        String @unique @db.VarChar(100)
-  passwordHash String @map("password_hash") @db.VarChar(100)
-
-  // General information
-  firstName String @map("first_name") @db.VarChar(50)
-  lastName  String @map("last_name") @db.VarChar(50)
-
-  // Access
-  role Role
-
-  // Other information
-  onboardingCompleted Boolean @default(false) @map("onboarding_completed")
-
-  // Verification
-  isEmailVerified           Boolean  @default(false) @map("is_email_verified")
-  verificationCode          String   @map("verification_code") @db.VarChar(10)
-  verificationCodeExpiresAt DateTime @map("verification_code_expires_at")
-
-  // System related
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
-
-  deleted   Boolean   @default(false)
-  deletedAt DateTime? @map("deleted_at")
-
-  //Relations
-  company     Company?
-  paymentTerm PaymentTerm[]
-  client      Client[]
-  product     Product[]
-  tax         Tax[]
-  invoice     Invoice[]
-  payment     Payment[]
-
-  @@map("user")
-}
-
-model Company {
-  userId String @id @map("user_id") @db.Uuid
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Company details
-  companyName String @map("company_name") @db.VarChar(255)
-
-  // Address
-  addressLine1 String  @map("address_line_1") @db.VarChar(255)
-  addressLine2 String? @map("address_line_2") @db.VarChar(255)
-  city         String  @db.VarChar(255)
-  state        String  @db.VarChar(50)
-  country      String  @db.VarChar(100)
-  postalCode   String  @db.VarChar(15)
-
-  //Optionals
-  taxId              String? @map("tax_number") @db.VarChar(30) // Vat, Gst etc.
-  email              String? @db.VarChar(100)
-  phone              String? @db.VarChar(20)
-  website            String? @db.VarChar(255)
-  logoUrl            String? @map("logo_url") @db.VarChar(255)
-  defaultPaymentDays Int     @default(30) @map("default_payment_days")
-  defaultInvoiceNote String? @map("default_invoice_note") @db.Text
-
-  // System related
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
-
-  @@map("company")
-}
-
-model PaymentTerm {
-  id           String @id @default(uuid()) @db.Uuid
-  userId       String @map("user_id") @db.Uuid
-  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  numberofDays Int    @map("number_of_days")
-}
-
-model Client {
-  id     String @id @default(uuid()) @db.Uuid
-  userId String @map("user_id") @db.Uuid
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  name String @db.VarChar(255)
-
-  //Contact information
-  email             String @db.VarChar(100)
-  contactPersonName String @map("contact_person_name") @db.VarChar(50)
-  phone             String @db.VarChar(20)
-
-  // Billing Address (Required)
-  billingAddressLine1 String  @map("billing_address_line_1") @db.VarChar(255)
-  billingAddressLine2 String? @map("billing_address_line_2") @db.VarChar(255)
-  billingCity         String  @map("billing_city") @db.VarChar()
-  billingState        String  @map("billing_state")
-  billingPostalCode   String  @map("billing_postal_code")
-  billingCountry      String  @map("billing_country")
-
-  // Shipping Address (Optional - defaults to billing)
-  shippingAddressLine1  String? @map("shipping_address_line_1")
-  shippingAddressLine2  String? @map("shipping_address_line_2")
-  shippingCity          String? @map("shipping_city")
-  shippingState         String? @map("shipping_state")
-  shippingPostalCode    String? @map("shipping_postal_code")
-  shippingCountry       String? @map("shipping_country")
-  shippingSameAsBilling Boolean @default(true) @map("shipping_same_as_billing")
-
-  //optional
-  taxId   String? @db.VarChar(30)
-  website String? @db.VarChar(100)
-
-  // Analytics 
-  invoiceCount      Int     @default(0) @map("invoice_count")
-  totalBilledAmount Decimal @default(0) @map("total_billed_amount") @db.Decimal(10, 2)
-
-  //Status
-  status ClientStatus
-
-  // System 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
-
-  //Relations 
-  invoice Invoice[]
-
-  // Composite unique contraints
-  @@unique([userId, email])
-  // Table name
-  @@map("client")
-}
-
-model Product {
-  id     String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Details
-  type        ProductType
-  name        String      @db.VarChar(50)
-  description String?     @db.Text
-
-  // Prices
-  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
-
-  // Extras
-  isActive Boolean @default(true) @map("is_active")
-
-  // System
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
-
-  @@map("product")
-}
-
-model Tax {
-  id     String @id @default(uuid()) @db.Uuid
-  userId String @map("user_id") @db.Uuid
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  name  String  @db.VarChar(20)
-  value Decimal @db.Decimal(10, 4)
-
-  isDefault Boolean @map("is_default")
-
-  // System 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
-
-  @@map("tax")
-}
-
-model Invoice {
-  id       String @id @default(uuid()) @db.Uuid
-  userId   String @map("user_id") @db.Uuid
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clientId String @map("client_id") @db.Uuid
-  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
-
-  //Essential Components
-  invoiceNumber String        @map("invoice_number") @db.VarChar(20)
-  status        InvoiceStatus
-  issueDate     DateTime      @map("issue_date")
-  dueDate       DateTime      @map("due_date")
-
-  subTotal   Decimal @map("sub_total") @db.Decimal(10, 2)
-  grandTotal Decimal @map("grand_total") @db.Decimal(10, 2)
-  taxPercent Decimal @map("tax_percent") @db.Decimal(10, 2)
-  taxAmount  Decimal @map("tax_amount") @db.Decimal(10, 2)
-
-  amountPaid Decimal @map("amount_paid") @db.Decimal(10, 2)
-  balanceDue Decimal @map("balance_due") @db.Decimal(10, 2)
-
-  paymentTerm String? @map("payment_term") @db.Text
-  footerNote  String? @map("footer_note") @db.Text
-
-  //Relations
-  invoiceItem InvoiceItem[]
-  payment     Payment[]
-
-  // System
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
-}
-
-model InvoiceItem {
-  id String @id @default(uuid()) @db.Uuid
-
-  invoiceId String  @map("invoice_id") @db.Uuid
-  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-
-  name        String  @db.VarChar(20)
-  description String? @db.VarChar(100)
-
-  unitPrice Decimal @map("unit_price") @db.Decimal(10, 2)
-  quantity  Int     @db.Integer
-
-  taxPercent Decimal? @map("tax_percent") @db.Decimal(10, 2)
-  taxAmout   Decimal? @map("tax_amount") @db.Decimal(10, 2)
-
-  totalAmount Decimal @db.Decimal(10, 2)
-
-  // System 
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @default(now()) @map("updated_at")
 }
 
 enum PaymentMethod {
@@ -298,48 +66,481 @@ enum PaymentProvider {
   // OTHER
 }
 
-model Payment {
-  id        String @id @default(uuid()) @db.Uuid
-  invoiceId String @map("invoice_id") @db.Uuid
-  userId    String @map("user_id") @db.Uuid
+// Add company member role enum
+enum CompanyRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
 
-  // Relations
-  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+enum ActivityType {
+  // Invoice Activities
+  INVOICE_CREATED
+  INVOICE_UPDATED
+  INVOICE_SENT
+  INVOICE_PAID
+  INVOICE_OVERDUE
+  INVOICE_CANCELLED
 
-  amount Decimal @db.Decimal(10, 2)
+  // Client Activities
+  CLIENT_CREATED
+  CLIENT_UPDATED
+  CLIENT_DELETED
 
-  // exchangeRate Decimal? @db.Decimal(10, 6) // For currency conversion
+  // Payment Activities
+  PAYMENT_RECEIVED
+  PAYMENT_CANCELLED
+  PAYMENT_REFUNDED
 
-  // 🔧 PAYMENT DETAILS
-  method   PaymentMethod
-  status   PaymentStatus   @default(PENDING)
-  provider PaymentProvider
+  // Product Activities
+  PRODUCT_CREATED
+  PRODUCT_UPDATED
+  PRODUCT_DELETED
 
-  // MANUAL PAYMENT FIELDS 
-  referenceNumber String? @map("reference_number") @db.VarChar(100)
-  description     String? @db.Text
+  // System Activities
+  USER_PROFILE_UPDATED
+  COMPANY_UPDATED
 
-  // // 🔌 PROVIDER INTEGRATION FIELDS (Future-Ready)
-  // providerPaymentId String?  @map("provider_payment_id") @db.VarChar(100)
-  // providerFee       Decimal? @map("provider_fee") @db.Decimal(10, 2) 
-  // providerResponse  Json?    @map("provider_response") 
+  // Future: Add more as needed
+}
 
-  // // ⚡ PROCESSING METADATA
-  // processedAt   DateTime? @map("processed_at")
-  // failureReason String?   @map("failure_reason") @db.Text
-  // retryCount    Int       @default(0) @map("retry_count")
+enum ActivityPriority {
+  LOW // Product updates, profile changes
+  MEDIUM // Client changes, invoice updates
+  HIGH // Payments, invoice status changes
+  CRITICAL // System issues, security events
+}
 
-  // verifiedAt   DateTime? @map("verified_at")
-  // verifiedBy   String?   @map("verified_by") @db.Uuid
-  // reconciledAt DateTime? @map("reconciled_at")
+// Global reference data
+model Currency {
+  id     String @id @db.VarChar(3) // ISO 4217: USD, EUR
+  name   String @db.VarChar(50) // "US Dollar"
+  symbol String @db.VarChar(5) // "$", "€"
+
+  isActive Boolean @default(true) @map("is_active")
 
   // System
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
-  // createdBy String?  @map("created_by") @db.Uuid // Who recorded this payment
+
+  // Relations
+  companies Company[]
+  invoices  Invoice[]
+
+  @@map("currency")
+}
+
+model Country {
+  id   String @id @db.VarChar(2) // ISO 3166-1: US, IN, GB
+  name String @db.VarChar(100) // "United States of America"
+
+  // Contact info
+  dialCode String? @db.VarChar(10) // "+1", "+91" (not unique!)
+  flag     String? @db.VarChar(10) // "🇮🇳" emoji
+
+  isActive Boolean @default(true) @map("is_active")
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  states          State[]
+  companies       Company[]
+  billingCountry  Client[]  @relation("billingCountry")
+  shippingCountry Client[]  @relation("shippingCountry")
+
+  @@map("country")
+}
+
+model State {
+  id        String @id @default(uuid()) @db.Uuid
+  code      String @db.VarChar(10) // iso Code
+  name      String @db.VarChar(100) // "California", "Maharashtra"
+  countryId String @db.VarChar(2) // FK to Country
+
+  isActive Boolean @default(true) @map("is_active")
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  country        Country   @relation(fields: [countryId], references: [id])
+  cities         City[]
+  companies      Company[]
+  clientBilling  Client[]  @relation("billingState")
+  clientShipping Client[]  @relation("shippingState")
+
+  @@unique([countryId, code]) // Unique within country
+  @@unique([countryId, name]) // Unique within country
+  @@map("state")
+}
+
+model City {
+  id      String @id @default(uuid()) @db.Uuid
+  name    String @db.VarChar(100) // "New York", "Mumbai"
+  stateId String @db.Uuid // FK to State
+  state   State  @relation(fields: [stateId], references: [id])
+
+  isActive Boolean @default(true) @map("is_active")
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  companies      Company[]
+  clientBilling  Client[]  @relation("billingCity")
+  clientShipping Client[]  @relation("shippingCity")
+
+  @@unique([stateId, name]) // Unique within state
+  @@map("city")
+}
+
+// 🎯 CORE USER & COMPANY ARCHITECTURE
+
+model User {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Essential user data
+  email        String @unique @db.VarChar(100)
+  passwordHash String @map("password_hash") @db.VarChar(100)
+
+  // General information
+  firstName String @map("first_name") @db.VarChar(50)
+  lastName  String @map("last_name") @db.VarChar(50)
+
+  // Access
+  role Role
+
+  // Other information
+  onboardingCompleted Boolean @default(false) @map("onboarding_completed")
+
+  // Verification
+  isEmailVerified           Boolean  @default(false) @map("is_email_verified")
+  verificationCode          String   @map("verification_code") @db.VarChar(10)
+  verificationCodeExpiresAt DateTime @map("verification_code_expires_at")
+
+  // System related
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  deleted   Boolean   @default(false)
+  deletedAt DateTime? @map("deleted_at")
+
+  ownedCompanies Company[] @relation("CompanyOwner")
+
+  @@index([email])
+  @@map("user")
+}
+
+model Company {
+  id      String @id @default(uuid()) @db.Uuid
+  ownerId String @map("owner_id") @db.Uuid
+  owner   User   @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+
+  name String @db.VarChar(255)
+  slug String @unique @db.VarChar(100) // For URL routing: /company/acme-corp
+
+  // Address
+  addressLine1 String  @map("address_line_1") @db.VarChar(255)
+  addressLine2 String? @map("address_line_2") @db.VarChar(255)
+  cityId       String  @db.Uuid
+  city         City    @relation(fields: [cityId], references: [id])
+  stateId      String  @db.Uuid
+  state        State   @relation(fields: [stateId], references: [id])
+  countryId    String  @db.VarChar(2)
+  country      Country @relation(fields: [countryId], references: [id])
+  postalCode   String  @db.VarChar(15)
+
+  // Optional business details
+  taxId   String? @map("tax_number") @db.VarChar(30) // VAT, GST etc.
+  email   String? @db.VarChar(100)
+  phone   String? @db.VarChar(20)
+  website String? @db.VarChar(255)
+  logoUrl String? @map("logo_url") @db.VarChar(255)
+
+  // 🎯 FIXED: Currency relationship
+  defaultCurrencyId String   @map("default_currency_id") @db.VarChar(3)
+  currency          Currency @relation(fields: [defaultCurrencyId], references: [id])
+
+  // Business settings
+  defaultInvoiceNote String? @map("default_invoice_note") @db.Text
+
+  // Invoice numbering
+  nextInvoiceNumber Int     @default(1) @map("next_invoice_number")
+  invoicePrefix     String? @map("invoice_prefix") @db.VarChar(10)
+
+  // Status
+  isActive Boolean @default(true) @map("is_active")
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  //  Company owns all business resources
+
+  products     Product[]
+  taxes        Tax[]
+  clients      Client[]
+  invoices     Invoice[]
+  payments     Payment[]
+  paymentTerms PaymentTerm[]
+  activities   Activity[]
+
+  @@index([ownerId])
+  @@index([slug])
+  @@index([isActive])
+  @@map("company")
+}
+
+model PaymentTerm {
+  id        String  @id @default(uuid()) @db.Uuid
+  companyId String  @map("company_id") @db.Uuid
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Payment term details
+
+  numberOfDays Int @map("number_of_days")
+
+  isDefault Boolean @default(false) @map("is_default")
+  isActive  Boolean @default(true) @map("is_active")
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([companyId, isDefault]) // Only one default per company
+  @@index([companyId, isActive])
+  @@map("payment_term")
+}
+
+model Client {
+  id        String  @id @default(uuid()) @db.Uuid
+  companyId String  @map("company_id") @db.Uuid
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name String @db.VarChar(255)
+
+  // Contact information
+  email             String @db.VarChar(100)
+  contactPersonName String @map("contact_person_name") @db.VarChar(50)
+  phone             String @db.VarChar(20)
+
+  // Billing Address (Required)
+  billingAddressLine1 String  @map("billing_address_line_1") @db.VarChar(255)
+  billingAddressLine2 String? @map("billing_address_line_2") @db.VarChar(255)
+  billingCityId       String  @map("billing_city_id") @db.Uuid
+  billingCity         City    @relation("billingCity", fields: [billingCityId], references: [id])
+  billingStateId      String  @map("billing_state_id") @db.Uuid
+  billingState        State   @relation("billingState", fields: [billingStateId], references: [id])
+  billingCountryId    String  @map("billing_country_id") @db.VarChar(2)
+  billingCountry      Country @relation("billingCountry", fields: [billingCountryId], references: [id])
+  billingPostalCode   String  @map("billing_postal_code")
+
+  // Shipping Address (Optional - defaults to billing)
+  shippingAddressLine1  String?  @map("shipping_address_line_1")
+  shippingAddressLine2  String?  @map("shipping_address_line_2")
+  shippingCityId        String?  @map("shipping_city_id") @db.Uuid
+  shippingCity          City?    @relation("shippingCity", fields: [shippingCityId], references: [id]) // Fixed typo
+  shippingStateId       String?  @map("shipping_state_id") @db.Uuid // Fixed field name
+  shippingState         State?   @relation("shippingState", fields: [shippingStateId], references: [id])
+  shippingCountryId     String?  @map("shipping_country_id") @db.VarChar(2) // Fixed field name
+  shippingCountry       Country? @relation("shippingCountry", fields: [shippingCountryId], references: [id])
+  shippingPostalCode    String?  @map("shipping_postal_code")
+  shippingSameAsBilling Boolean  @default(true) @map("shipping_same_as_billing")
+
+  // Optional
+  taxId   String? @db.VarChar(30)
+  website String? @db.VarChar(100)
+
+  // Analytics 
+  invoiceCount      Int     @default(0) @map("invoice_count")
+  totalBilledAmount Decimal @default(0) @map("total_billed_amount") @db.Decimal(12, 2)
+
+  // Status
+  status ClientStatus
+
+  // System 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations 
+  invoices Invoice[]
+
+  // Constraints
+  @@unique([companyId, email])
+  @@index([companyId, status])
+  @@index([companyId, name])
+  @@map("client")
+}
+
+model Product {
+  id        String  @id @default(uuid()) @db.Uuid
+  companyId String  @map("company_id") @db.Uuid
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Details
+  type        ProductType
+  name        String      @db.VarChar(100)
+  description String?     @db.Text
+
+  // Pricing
+  unitPrice Decimal @map("unit_price") @db.Decimal(12, 2)
+
+  // Status
+  isActive Boolean @default(true) @map("is_active")
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([companyId, isActive])
+  @@index([companyId, type])
+  @@map("product")
+}
+
+model Tax {
+  id        String  @id @default(uuid()) @db.Uuid
+  companyId String  @map("company_id") @db.Uuid
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  name      String  @db.VarChar(50) // Increased size
+  rate      Decimal @db.Decimal(5, 4)
+  isDefault Boolean @default(false) @map("is_default")
+  isActive  Boolean @default(true) @map("is_active")
+
+  // System 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([companyId, isDefault])
+  @@unique([companyId, name])
+  @@index([companyId, isActive])
+  @@map("tax")
+}
+
+model Invoice {
+  id        String  @id @default(uuid()) @db.Uuid
+  companyId String  @map("company_id") @db.Uuid
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  clientId  String  @map("client_id") @db.Uuid
+  client    Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  // Essential Components
+  invoiceNumber String        @map("invoice_number") @db.VarChar(50)
+  status        InvoiceStatus
+  issueDate     DateTime      @map("issue_date")
+  dueDate       DateTime      @map("due_date")
+  currencyId    String        @map("currency_id") @db.VarChar(3)
+  currency      Currency      @relation(fields: [currencyId], references: [id])
+
+  // Payment terms
+  paymentTermText String @map("payment_term_text") @db.Text
+
+  // Financial calculations
+  subTotal   Decimal @map("sub_total") @db.Decimal(12, 2)
+  taxAmount  Decimal @map("tax_amount") @db.Decimal(12, 2)
+  grandTotal Decimal @map("grand_total") @db.Decimal(12, 2)
+  amountPaid Decimal @default(0) @map("amount_paid") @db.Decimal(12, 2)
+  balanceDue Decimal @map("balance_due") @db.Decimal(12, 2)
+
+  // Additional fields
+  footerNote String? @map("footer_note") @db.Text
+
+  // Status tracking
+  sentAt DateTime? @map("sent_at")
+  paidAt DateTime? @map("paid_at")
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  items    InvoiceItem[]
+  payments Payment[]
+
+  // Constraints & Indexes
+  @@unique([companyId, invoiceNumber])
+  @@index([companyId, status, dueDate])
+  @@index([companyId, createdAt(sort: Desc)])
+  @@index([clientId, status])
+  @@map("invoice")
+}
+
+model InvoiceItem {
+  id        String  @id @default(uuid()) @db.Uuid
+  invoiceId String  @map("invoice_id") @db.Uuid
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  name        String  @db.VarChar(100)
+  description String? @db.VarChar(500)
+
+  unitPrice Decimal @map("unit_price") @db.Decimal(12, 2)
+  quantity  Decimal @db.Decimal(10, 3)
+
+  taxRate   Decimal? @map("tax_rate") @db.Decimal(5, 4)
+  taxAmount Decimal? @map("tax_amount") @db.Decimal(12, 2)
+
+  totalAmount Decimal @map("total_amount") @db.Decimal(12, 2)
+
+  // System 
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([invoiceId])
-  @@index([userId, status])
+  @@map("invoice_item")
+}
+
+model Payment {
+  id        String  @id @default(uuid()) @db.Uuid
+  companyId String  @map("company_id") @db.Uuid
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  invoiceId String  @map("invoice_id") @db.Uuid
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  amount Decimal @db.Decimal(12, 2)
+
+  // Payment details
+  method   PaymentMethod
+  status   PaymentStatus
+  provider PaymentProvider
+
+  // Manual payment fields 
+  referenceNumber String? @map("reference_number") @db.VarChar(100)
+  description     String? @db.Text
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([companyId, status])
+  @@index([companyId, createdAt(sort: Desc)])
+  @@index([invoiceId])
+  @@index([method, status])
   @@map("payment")
+}
+
+model Activity {
+  id        String  @id @default(uuid()) @db.Uuid
+  companyId String  @map("company_id") @db.Uuid
+  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  // Activity Details
+  type        ActivityType
+  title       String           @db.VarChar(200)
+  description String?          @db.Text
+  priority    ActivityPriority @default(MEDIUM)
+
+  resourceType String? @map("resource_type") @db.VarChar(20) // "invoice", "client", "payment"
+  resourceId   String? @map("resource_id") @db.Uuid
+
+  // System
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([companyId, createdAt(sort: Desc)])
+  @@index([companyId, type, createdAt(sort: Desc)])
+  @@index([resourceType, resourceId])
+  @@map("activity")
 }
