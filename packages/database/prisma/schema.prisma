@@ -27,7 +27,6 @@ enum InvoiceStatus {
   DRAFT
   PENDING
   PAID
-  OVERDUE
   CANCELLED
   PARTIALLY_PAID
 }
@@ -37,41 +36,11 @@ enum PaymentMethod {
   CHECK
   BANK_TRANSFER
   WIRE_TRANSFER
-  // ACH
-  // MOBILE_PAYMENT // UPI, Venmo,
-  // CREDIT_CARD // Future: Stripe, Square
-  // PAYPAL // Future: PayPal integration
-  // CRYPTOCURRENCY // Future: crypto payments
   OTHER
 }
 
-enum PaymentStatus {
-  PENDING // Initiated but not confirmed
-  // PROCESSING // Being processed (future: payment gateway)
-  COMPLETED // Successfully received
-  // FAILED // Processing failed
-  CANCELLED // User cancelled
-  REFUNDED // Full refund issued
-  // PARTIALLY_REFUNDED // Partial refund
-  // DISPUTED // Chargeback/dispute
-}
-
 enum PaymentProvider {
-  MANUAL // User manually recorded
-  // STRIPE // Future: Stripe integration
-  // PAYPAL // Future: PayPal integration
-  // RAZORPAY // Future: India market
-  // SQUARE // Future: in-person payments
-  // BANK_INTEGRATION // Future: bank API
-  // OTHER
-}
-
-// Add company member role enum
-enum CompanyRole {
-  OWNER
-  ADMIN
-  MEMBER
-  VIEWER
+  MANUAL
 }
 
 enum ActivityType {
@@ -80,7 +49,7 @@ enum ActivityType {
   INVOICE_UPDATED
   INVOICE_SENT
   INVOICE_PAID
-  INVOICE_OVERDUE
+
   INVOICE_CANCELLED
 
   // Client Activities
@@ -101,8 +70,6 @@ enum ActivityType {
   // System Activities
   USER_PROFILE_UPDATED
   COMPANY_UPDATED
-
-  // Future: Add more as needed
 }
 
 enum ActivityPriority {
@@ -111,94 +78,6 @@ enum ActivityPriority {
   HIGH // Payments, invoice status changes
   CRITICAL // System issues, security events
 }
-
-// Global reference data
-model Currency {
-  id     String @id @db.VarChar(3) // ISO 4217: USD, EUR
-  name   String @db.VarChar(50) // "US Dollar"
-  symbol String @db.VarChar(5) // "$", "€"
-
-  isActive Boolean @default(true) @map("is_active")
-
-  // System
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  companies Company[]
-  invoices  Invoice[]
-
-  @@map("currency")
-}
-
-model Country {
-  id   String @id @db.VarChar(2) // ISO 3166-1: US, IN, GB
-  name String @db.VarChar(100) // "United States of America"
-
-  // Contact info
-  dialCode String? @db.VarChar(10) // "+1", "+91" (not unique!)
-  flag     String? @db.VarChar(10) // "🇮🇳" emoji
-
-  isActive Boolean @default(true) @map("is_active")
-
-  // System
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  states          State[]
-  companies       Company[]
-  billingCountry  Client[]  @relation("billingCountry")
-  shippingCountry Client[]  @relation("shippingCountry")
-
-  @@map("country")
-}
-
-model State {
-  id        String @id @default(uuid()) @db.Uuid
-  code      String @db.VarChar(10) // iso Code
-  name      String @db.VarChar(100) // "California", "Maharashtra"
-  countryId String @db.VarChar(2) // FK to Country
-
-  isActive Boolean @default(true) @map("is_active")
-
-  // System
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  // Relations
-  country        Country   @relation(fields: [countryId], references: [id])
-  cities         City[]
-  companies      Company[]
-  clientBilling  Client[]  @relation("billingState")
-  clientShipping Client[]  @relation("shippingState")
-
-  @@unique([countryId, code]) // Unique within country
-  @@unique([countryId, name]) // Unique within country
-  @@map("state")
-}
-
-model City {
-  id      String @id @default(uuid()) @db.Uuid
-  name    String @db.VarChar(100) // "New York", "Mumbai"
-  stateId String @db.Uuid // FK to State
-  state   State  @relation(fields: [stateId], references: [id])
-
-  isActive Boolean @default(true) @map("is_active")
-
-  // System
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
-
-  companies      Company[]
-  clientBilling  Client[]  @relation("billingCity")
-  clientShipping Client[]  @relation("shippingCity")
-
-  @@unique([stateId, name]) // Unique within state
-  @@map("city")
-}
-
-// 🎯 CORE USER & COMPANY ARCHITECTURE
 
 model User {
   id String @id @default(uuid()) @db.Uuid
@@ -212,10 +91,11 @@ model User {
   lastName  String @map("last_name") @db.VarChar(50)
 
   // Access
-  role Role
+  role Role @default(USER)
 
   // Other information
   onboardingCompleted Boolean @default(false) @map("onboarding_completed")
+  timezone            String? @db.VarChar(30)
 
   // Verification
   isEmailVerified           Boolean  @default(false) @map("is_email_verified")
@@ -229,30 +109,30 @@ model User {
   deleted   Boolean   @default(false)
   deletedAt DateTime? @map("deleted_at")
 
-  ownedCompanies Company[] @relation("CompanyOwner")
+  companies Company[] @relation("CompanyOwner")
 
   @@index([email])
   @@map("user")
 }
 
 model Company {
-  id      String @id @default(uuid()) @db.Uuid
-  ownerId String @map("owner_id") @db.Uuid
-  owner   User   @relation("CompanyOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("owner_id") @db.Uuid
+  user   User   @relation("CompanyOwner", fields: [userId], references: [id], onDelete: Cascade)
 
   name String @db.VarChar(255)
-  slug String @unique @db.VarChar(100) // For URL routing: /company/acme-corp
+  slug String @unique @db.VarChar(100)
 
   // Address
   addressLine1 String  @map("address_line_1") @db.VarChar(255)
   addressLine2 String? @map("address_line_2") @db.VarChar(255)
-  cityId       String  @db.Uuid
-  city         City    @relation(fields: [cityId], references: [id])
-  stateId      String  @db.Uuid
-  state        State   @relation(fields: [stateId], references: [id])
-  countryId    String  @db.VarChar(2)
-  country      Country @relation(fields: [countryId], references: [id])
-  postalCode   String  @db.VarChar(15)
+  city         String  @db.VarChar(30)
+
+  state String @db.VarChar(30)
+
+  country String @db.VarChar(2)
+
+  postalCode String @db.VarChar(15)
 
   // Optional business details
   taxId   String? @map("tax_number") @db.VarChar(30) // VAT, GST etc.
@@ -261,16 +141,14 @@ model Company {
   website String? @db.VarChar(255)
   logoUrl String? @map("logo_url") @db.VarChar(255)
 
-  // 🎯 FIXED: Currency relationship
-  defaultCurrencyId String   @map("default_currency_id") @db.VarChar(3)
-  currency          Currency @relation(fields: [defaultCurrencyId], references: [id])
+  defaultCurrency String @map("default_currency") @db.VarChar(10) //4217 code
 
   // Business settings
   defaultInvoiceNote String? @map("default_invoice_note") @db.Text
 
   // Invoice numbering
-  nextInvoiceNumber Int     @default(1) @map("next_invoice_number")
-  invoicePrefix     String? @map("invoice_prefix") @db.VarChar(10)
+  nextInvoiceNumber Int    @default(1) @map("next_invoice_number")
+  invoicePrefix     String @map("invoice_prefix") @db.VarChar(10)
 
   // Status
   isActive Boolean @default(true) @map("is_active")
@@ -289,7 +167,7 @@ model Company {
   paymentTerms PaymentTerm[]
   activities   Activity[]
 
-  @@index([ownerId])
+  @@index([userId])
   @@index([slug])
   @@index([isActive])
   @@map("company")
@@ -311,7 +189,7 @@ model PaymentTerm {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([companyId, isDefault]) // Only one default per company
+  @@unique([companyId, isDefault])
   @@index([companyId, isActive])
   @@map("payment_term")
 }
@@ -331,25 +209,23 @@ model Client {
   // Billing Address (Required)
   billingAddressLine1 String  @map("billing_address_line_1") @db.VarChar(255)
   billingAddressLine2 String? @map("billing_address_line_2") @db.VarChar(255)
-  billingCityId       String  @map("billing_city_id") @db.Uuid
-  billingCity         City    @relation("billingCity", fields: [billingCityId], references: [id])
-  billingStateId      String  @map("billing_state_id") @db.Uuid
-  billingState        State   @relation("billingState", fields: [billingStateId], references: [id])
-  billingCountryId    String  @map("billing_country_id") @db.VarChar(2)
-  billingCountry      Country @relation("billingCountry", fields: [billingCountryId], references: [id])
-  billingPostalCode   String  @map("billing_postal_code")
+  billingCity         String  @map("billing_city_id") @db.VarChar(50)
+
+  billingState      String @map("billing_state_id") @db.VarChar(50)
+  billingCountry    String @map("billing_country_id") @db.VarChar(2)
+  billingPostalCode String @map("billing_postal_code") @db.VarChar(15)
 
   // Shipping Address (Optional - defaults to billing)
-  shippingAddressLine1  String?  @map("shipping_address_line_1")
-  shippingAddressLine2  String?  @map("shipping_address_line_2")
-  shippingCityId        String?  @map("shipping_city_id") @db.Uuid
-  shippingCity          City?    @relation("shippingCity", fields: [shippingCityId], references: [id]) // Fixed typo
-  shippingStateId       String?  @map("shipping_state_id") @db.Uuid // Fixed field name
-  shippingState         State?   @relation("shippingState", fields: [shippingStateId], references: [id])
-  shippingCountryId     String?  @map("shipping_country_id") @db.VarChar(2) // Fixed field name
-  shippingCountry       Country? @relation("shippingCountry", fields: [shippingCountryId], references: [id])
-  shippingPostalCode    String?  @map("shipping_postal_code")
-  shippingSameAsBilling Boolean  @default(true) @map("shipping_same_as_billing")
+  shippingAddressLine1 String? @map("shipping_address_line_1")
+  shippingAddressLine2 String? @map("shipping_address_line_2")
+  shippingCity         String? @map("shipping_city_id") @db.VarChar(50)
+
+  shippingState String? @map("shipping_state_id") @db.VarChar(50)
+
+  shippingCountry String? @map("shipping_country_id") @db.VarChar(2) //3166 alpah-2
+
+  shippingPostalCode    String? @map("shipping_postal_code") @db.VarChar(15)
+  shippingSameAsBilling Boolean @default(true) @map("shipping_same_as_billing")
 
   // Optional
   taxId   String? @db.VarChar(30)
@@ -406,7 +282,7 @@ model Tax {
   companyId String  @map("company_id") @db.Uuid
   company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
-  name      String  @db.VarChar(50) // Increased size
+  name      String  @db.VarChar(50)
   rate      Decimal @db.Decimal(5, 4)
   isDefault Boolean @default(false) @map("is_default")
   isActive  Boolean @default(true) @map("is_active")
@@ -433,11 +309,10 @@ model Invoice {
   status        InvoiceStatus
   issueDate     DateTime      @map("issue_date")
   dueDate       DateTime      @map("due_date")
-  currencyId    String        @map("currency_id") @db.VarChar(3)
-  currency      Currency      @relation(fields: [currencyId], references: [id])
+  currency      String        @db.VarChar(10)
 
   // Payment terms
-  paymentTermText String @map("payment_term_text") @db.Text
+  paymentTermText String @map("payment_term_text") @db.VarChar(20)
 
   // Financial calculations
   subTotal   Decimal @map("sub_total") @db.Decimal(12, 2)
@@ -475,7 +350,7 @@ model InvoiceItem {
   invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   name        String  @db.VarChar(100)
-  description String? @db.VarChar(500)
+  description String? @db.VarChar(255)
 
   unitPrice Decimal @map("unit_price") @db.Decimal(12, 2)
   quantity  Decimal @db.Decimal(10, 3)
@@ -502,23 +377,18 @@ model Payment {
 
   amount Decimal @db.Decimal(12, 2)
 
-  // Payment details
-  method   PaymentMethod
-  status   PaymentStatus
+  method PaymentMethod
+
   provider PaymentProvider
 
-  // Manual payment fields 
-  referenceNumber String? @map("reference_number") @db.VarChar(100)
-  description     String? @db.Text
+  description String? @db.Text
 
   // System
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([companyId, status])
   @@index([companyId, createdAt(sort: Desc)])
   @@index([invoiceId])
-  @@index([method, status])
   @@map("payment")
 }
 
