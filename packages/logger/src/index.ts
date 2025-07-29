@@ -1,5 +1,13 @@
-import pino from "pino";
+export const logger = {
+  info: (message: string, data = {}) => {
+    console.info(`📝 [INFO] ${new Date().toISOString()} - ${message}`, data);
+  },
 
-const logger = pino();
+  error: (message: string, data = {}) => {
+    console.error(`❌ [ERROR] ${new Date().toISOString()} - ${message}`, data);
+  },
 
-export default logger;
+  warn: (message: string, data = {}) => {
+    console.warn(`⚠️  [WARN] ${new Date().toISOString()} - ${message}`, data);
+  },
+};
