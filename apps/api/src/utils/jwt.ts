@@ -1,7 +1,8 @@
 import config from "@/config/config";
 import jwt from "jsonwebtoken";
+import { JwtPayload } from "jsonwebtoken";
 
-interface JWTPayload {
+export interface JWTPayload {
   userId: string;
   email: string;
   role: "USER" | "AMDIN";
@@ -17,5 +18,8 @@ export class JWTUtil {
 
   verifyToken(token: string): JWTPayload {
     return jwt.verify(token, this.secret) as JWTPayload;
+  }
+  isJWTPayload(value: JwtPayload | String): value is JwtPayload {
+    return (value as JwtPayload) !== undefined;
   }
 }

@@ -23,12 +23,12 @@ export class AuthService {
   /**
    * Register new user
    */
-  async registerUser(userData: SignUpDateType): Promise<SignUpDateType | null> {
+  async registerUser(userData: SignUpDateType): Promise<boolean> {
     const existingUser = await this.userRepository.findByEmail(userData.email);
 
     if (existingUser) {
       if (existingUser.isEmailVerified) {
-        return null;
+        return false;
       }
     }
 
@@ -44,6 +44,6 @@ export class AuthService {
       verificationCode,
       verificationCodeExpiresAt,
     });
-    return userData;
+    return true;
   }
 }

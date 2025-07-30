@@ -1,5 +1,5 @@
 import { Response } from "express";
-import { prisma, type PrismaClient } from "@repo/db";
+import { type PrismaClient } from "@repo/db";
 import { logger } from "@repo/logger";
 import { ZodObject } from "zod";
 
@@ -13,7 +13,7 @@ export interface ApiResponse<T = null> {
 export abstract class BaseController {
   protected prisma: PrismaClient;
 
-  constructor(prismaInstance: PrismaClient = prisma) {
+  constructor(prismaInstance: PrismaClient) {
     this.prisma = prismaInstance;
   }
 

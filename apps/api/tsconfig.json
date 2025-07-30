@@ -4,13 +4,12 @@
     "outDir": "dist",
     "rootDir": "src",
     "paths": {
-      "@/*": ["./src/*"]
-
-      //       //   "@/types/*": ["./src/types/*"],
-      //       //   "@/utils/*": ["./src/utils/*"],
-      //       //   "@/services/*": ["./src/services/*"],
-      //       //   "@/middleware/*": ["./src/middleware/*"],
-      //       //   "@/routes/*": ["./src/routes/*"]
+      "@/*": ["./src/*"],
+      "@/types/*": ["./src/types/*"],
+      "@/utils/*": ["./src/utils/*"],
+      "@/services/*": ["./src/services/*"],
+      "@/middlewares/*": ["./src/middlewares/*"],
+      "@/routes/*": ["./src/routes/*"]
     }
   },
   "include": ["src/**/*.ts"],
