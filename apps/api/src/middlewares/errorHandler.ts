@@ -1,4 +1,3 @@
-// apps/backend/src/middleware/errorHandler.ts
 import { NextFunction, Request, Response } from "express";
 import { logger } from "@repo/logger";
 
@@ -32,7 +31,8 @@ export const globalErrorHandler = (
     clientMessage = error.message;
   } else if (
     error.message.includes("Authentication") ||
-    error.message.includes("Invalid email or password")
+    error.message.includes("Invalid email or password") ||
+    error.message.includes("Incorrect")
   ) {
     statusCode = 401;
     clientMessage = error.message;
@@ -42,6 +42,9 @@ export const globalErrorHandler = (
   ) {
     statusCode = 403;
     clientMessage = "Access denied";
+  } else {
+    statusCode = 400;
+    clientMessage = error.message;
   }
 
   return res.status(statusCode).json({

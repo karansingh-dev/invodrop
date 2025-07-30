@@ -8,3 +8,4 @@ export const router: Router = express.Router();
 const auth = new AuthController(prisma);
 
 router.post("/register", wrapAsync(auth.register.bind(auth)));
+router.post("/verify", wrapAsync(auth.verifyEmail.bind(auth)));

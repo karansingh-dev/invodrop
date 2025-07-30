@@ -1,4 +1,4 @@
-import { PrismaClient, User } from "@repo/db";
+import { type PrismaClient, User } from "@repo/db";
 
 export interface CreateUserData {
   email: string;
@@ -32,10 +32,29 @@ export class UserRepository {
     return count > 0;
   }
 
-  async create(data: CreateUserData): Promise<User> {
+  async create(user: CreateUserData): Promise<User> {
     return this.prisma.user.create({
+      data: user,
+    });
+  }
+
+  async upsert(user: CreateUserData): Promise<User> {
+    return this.prisma.user.upsert({
+      where: {
+        email: user.email,
+      },
+      update: user,
+      create: user,
+    });
+  }
+
+  async verifyUserByEmail(email: string): Promise<User> {
+    return this.prisma.user.update({
+      where: {
+        email,
+      },
       data: {
-        ...data,
+        isEmailVerified: true,
       },
     });
   }

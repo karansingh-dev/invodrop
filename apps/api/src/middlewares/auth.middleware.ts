@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { JWTUtil } from "@/utils/jwt";
+import { logger } from "@repo/logger";
 
 export const defaultMiddleware = async (
   req: Request,
@@ -31,8 +32,7 @@ export const defaultMiddleware = async (
       return res.status(401).json({ success: false, message: "Invalid token" });
     }
   } catch (error: any) {
-    console.log(error.message, token);
+    logger.error(error.message, token);
     return res.status(401).json({ success: false, message: "Invalid token" });
-    next(error);
   }
 };

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { email, z } from "zod";
 
 export const signUpSchema = z.object({
   firstName: z
@@ -13,11 +13,7 @@ export const signUpSchema = z.object({
     .nonempty({ message: "Last name is required" })
     .max(50, { message: "Last name must be at most 50 characters" }),
 
-  email: z
-    .string()
-    .trim()
-    .email({ message: "Please enter a valid email address" }),
-
+  email: z.email({ message: "Please enter a valid email address" }).trim(),
   password: z
     .string()
     .min(6, { message: "Password must be at least 6 characters long" })
@@ -28,4 +24,10 @@ export const signUpSchema = z.object({
     }),
 });
 
+export const verifyUserSchema = z.object({
+  email: z.email({ message: "Please enter a valid email address" }).trim(),
+  verificationCode: z.string().min(6).max(6),
+});
+
+export type VerifyUserDataType = z.infer<typeof verifyUserSchema>;
 export type SignUpDateType = z.infer<typeof signUpSchema>;
