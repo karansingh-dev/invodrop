@@ -27,6 +27,12 @@ export class UserRepository {
     });
   }
 
+  async findById(id: string): Promise<User | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+    });
+  }
+
   async existsByEmail(email: string): Promise<boolean> {
     const count = await this.prisma.user.count({ where: { email } });
     return count > 0;

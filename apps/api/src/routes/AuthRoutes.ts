@@ -9,3 +9,8 @@ const auth = new AuthController(prisma);
 
 router.post("/register", wrapAsync(auth.register.bind(auth)));
 router.post("/verify", wrapAsync(auth.verifyEmail.bind(auth)));
+router.post("/sign-in", wrapAsync(auth.singIn.bind(auth)));
+router.get(
+  "/refresh-access-token",
+  wrapAsync(auth.refreshAccessToken.bind(auth))
+);

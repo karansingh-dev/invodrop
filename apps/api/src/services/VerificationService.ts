@@ -1,11 +1,11 @@
 import config from "@/config/config";
 import { Resend } from "resend";
 import path, { PlatformPath } from "path";
-import ejs from "ejs";
-import fs from "fs";
-import { logger } from "@repo/logger";
 import { type PrismaClient } from "@repo/db";
 import { UserRepository } from "@/repositories/UserRepository";
+import { ApiError } from "@/utils/ApiError";
+import { renderTemplate } from "@/utils/renderTemplate";
+import { sendEmail } from "@/utils/sendEmail";
 
 export interface VerifiedUser {
   id: string;
@@ -28,12 +28,8 @@ export class VerificationService {
   }
 
   /**
-   Initiating all dependencies
-  */
-
-  /**
    * Send verification code.
-   * Throws standard Error with a message for the controller to catch.
+   * Throws standard Error with a message and errors array for the controller to catch.
    */
 
   async sendVerificationEmail(
@@ -41,27 +37,15 @@ export class VerificationService {
     verificationCode: string,
     email: string
   ): Promise<string> {
-    const templatePath = this.path.resolve(
-      __dirname,
-      "../../views/emailTemplate.ejs"
-    );
-    const template = fs.readFileSync(templatePath, "utf-8");
-    const html = ejs.render(template, { fullName, verificationCode });
-    try {
-      const response = await this.resend.emails.send({
-        from: "Acme <onboarding@resend.dev>",
-        to: [email],
-        subject: "verification code",
-        html,
-      });
-
-      if (!response.data) throw new Error("Failed sending verificaition email");
-
-      return response.data.id;
-    } catch (emailError: any) {
-      logger.error("error sending verification email", emailError.message);
-      throw new Error("Failed To send verification email");
-    }
+    const html = renderTemplate("emailTemplate", {
+      fullName,
+      verificationCode,
+    });
+    return await sendEmail({
+      to: email,
+      subject: "Verification code",
+      html,
+    });
   }
 
   async verifyUser(
@@ -70,20 +54,30 @@ export class VerificationService {
   ): Promise<VerifiedUser> {
     const existingUser = await this.userRepository.findByEmail(email);
 
-    if (!existingUser) throw new Error("User not found");
+    if (!existingUser) {
+      throw new ApiError(404, "User not found", [
+        "No account matches that email",
+      ]);
+    }
 
     if (existingUser.isEmailVerified === true) {
-      throw new Error("User already verified");
+      throw new ApiError(400, "User already verified", [
+        "This account has already been verified",
+      ]);
     }
 
     const currentTime = new Date();
 
     if (existingUser.verificationCodeExpiresAt < currentTime) {
-      throw new Error("Verificaiton code expired, please signup again");
+      throw new ApiError(400, "Verification code expired", [
+        "Verification code expired, please sign up again",
+      ]);
     }
 
     if (existingUser.verificationCode !== verificationCode) {
-      throw new Error("Incorrect verification code");
+      throw new ApiError(400, "Incorrect verification code", [
+        "The verification code is incorrect",
+      ]);
     }
 
     const verifiedUser = await this.userRepository.verifyUserByEmail(email);

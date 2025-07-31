@@ -2,12 +2,13 @@ import { Response } from "express";
 import { type PrismaClient } from "@repo/db";
 import { logger } from "@repo/logger";
 import { ZodObject } from "zod";
+import { ApiError } from "@/utils/ApiError";
 
 export interface ApiResponse<T = null> {
   success: boolean;
   message: string;
   data?: T;
-  error?: string;
+  errors?: string[];
 }
 
 export abstract class BaseController {
@@ -22,11 +23,11 @@ export abstract class BaseController {
     message: string,
     statusCode: number = 200,
     data?: T
-  ): Promise<Response<ApiResponse>> {
+  ): Promise<Response<ApiResponse<T>>> {
     return res.status(statusCode).json({
       success: true,
       message,
-      data,
+      ...(data !== null && { data }),
     });
   }
 
@@ -35,12 +36,12 @@ export abstract class BaseController {
     message: string,
     statusCode: number = 400,
 
-    error: string
+    errors: string[]
   ): Promise<Response<ApiResponse>> {
     return res.status(statusCode).json({
       success: false,
       message,
-      error,
+      errors,
     });
   }
 
@@ -48,10 +49,13 @@ export abstract class BaseController {
     const result = schema.safeParse(body);
 
     if (!result.success) {
-      const errorMessages = result.error.message;
+      const errorMessages = result.error.issues.map((issue) => issue.message);
       logger.warn("Zod Validation Error:", errorMessages);
 
-      throw new Error("Validation failed");
+      throw new ApiError(400, "Validation failed", [
+        "Invalid Data Sent",
+        "Invlalid Structure of data",
+      ]);
     }
 
     return result.data as T;

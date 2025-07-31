@@ -19,13 +19,13 @@ export const defaultMiddleware = async (
 
     const jwt = new JWTUtil();
 
-    const decodedToken = jwt.verifyToken(token);
+    const decodedToken = jwt.verifyAccessToken(token);
 
     const isJwtPayload = jwt.isJWTPayload(decodedToken);
 
     if (isJwtPayload) {
-      const { userId, email, role } = decodedToken;
-      req.user = { userId, email, role };
+      const { userId, role } = decodedToken;
+      req.user = { userId, role };
 
       next();
     } else {
