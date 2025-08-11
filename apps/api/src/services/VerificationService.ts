@@ -47,47 +47,4 @@ export class VerificationService {
       html,
     });
   }
-
-  async verifyUser(
-    email: string,
-    verificationCode: string
-  ): Promise<VerifiedUser> {
-    const existingUser = await this.userRepository.findByEmail(email);
-
-    if (!existingUser) {
-      throw new ApiError(404, "User not found", [
-        "No account matches that email",
-      ]);
-    }
-
-    if (existingUser.isEmailVerified === true) {
-      throw new ApiError(400, "User already verified", [
-        "This account has already been verified",
-      ]);
-    }
-
-    const currentTime = new Date();
-
-    if (existingUser.verificationCodeExpiresAt < currentTime) {
-      throw new ApiError(400, "Verification code expired", [
-        "Verification code expired, please sign up again",
-      ]);
-    }
-
-    if (existingUser.verificationCode !== verificationCode) {
-      throw new ApiError(400, "Incorrect verification code", [
-        "The verification code is incorrect",
-      ]);
-    }
-
-    const verifiedUser = await this.userRepository.verifyUserByEmail(email);
-
-    return {
-      id: verifiedUser.id,
-      firstname: verifiedUser.firstName,
-      lastName: verifiedUser.lastName,
-      email: verifiedUser.email,
-      isEmailVerified: verifiedUser.isEmailVerified,
-    };
-  }
 }

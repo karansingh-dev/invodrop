@@ -1,38 +1,37 @@
 import { Request, Response, NextFunction } from "express";
-import { JWTUtil } from "@/utils/jwt";
 import { logger } from "@repo/logger";
+import { fromNodeHeaders } from "better-auth/node";
+import { auth } from "@/lib/auth";
+import { ApiError } from "@/utils/ApiError";
 
-export const defaultMiddleware = async (
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const authHeaders = req.header("Authorization");
-  const token = authHeaders?.split(" ")[1];
-
   try {
-    if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Authorization Token is Required" });
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers),
+    });
+    if (!session) {
+      throw new ApiError(401, "Authorization Failed", [
+        "invalid cookie",
+        "not allowed",
+      ]);
     }
 
-    const jwt = new JWTUtil();
+    req.user = {
+      userId: session.user.id,
+      role: session.user.role,
+      email: session.user.email,
+    };
 
-    const decodedToken = jwt.verifyAccessToken(token);
-
-    const isJwtPayload = jwt.isJWTPayload(decodedToken);
-
-    if (isJwtPayload) {
-      const { userId, role } = decodedToken;
-      req.user = { userId, role };
-
-      next();
-    } else {
-      return res.status(401).json({ success: false, message: "Invalid token" });
-    }
+    next();
   } catch (error: any) {
-    logger.error(error.message, token);
-    return res.status(401).json({ success: false, message: "Invalid token" });
+    logger.error(error.message, "Better auth Vaidation Failed");
+    throw new ApiError(401, "Authorization Failed", [
+      "invalid cookie",
+      "not allowed",
+    ]);
   }
 };

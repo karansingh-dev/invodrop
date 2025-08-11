@@ -1,4 +1,4 @@
-// utils/emailSender.ts
+
 import { Resend } from "resend";
 import { ApiError } from "@/utils/ApiError";
 import { logger } from "@repo/logger";
@@ -18,6 +18,7 @@ export async function sendEmail({
   from?: string;
 }): Promise<string> {
   try {
+    console.log(from);
     const response = await resend.emails.send({
       from,
       to: Array.isArray(to) ? to : [to],

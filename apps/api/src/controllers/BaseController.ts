@@ -3,13 +3,7 @@ import { type PrismaClient } from "@repo/db";
 import { logger } from "@repo/logger";
 import { ZodObject } from "zod";
 import { ApiError } from "@/utils/ApiError";
-
-export interface ApiResponse<T = null> {
-  success: boolean;
-  message: string;
-  data?: T;
-  errors?: string[];
-}
+import { ApiResponse } from "@repo/shared";
 
 export abstract class BaseController {
   protected prisma: PrismaClient;
@@ -55,6 +49,22 @@ export abstract class BaseController {
       throw new ApiError(400, "Validation failed", [
         "Invalid Data Sent",
         "Invlalid Structure of data",
+      ]);
+    }
+
+    return result.data as T;
+  }
+
+  protected validateParams<T>(schema: ZodObject, params: unknown): T {
+    const result = schema.safeParse(params);
+
+    if (!result.success) {
+      const errorMessages = result.error.issues.map((issue) => issue.message);
+      logger.warn("Zod Params Validation Error:", errorMessages);
+
+      throw new ApiError(400, "Query parameter validation failed", [
+        "Invalid query parameters",
+        "Invalid structure of query parameters",
       ]);
     }
 

@@ -1,6 +1,5 @@
-// utils/wrapAsync.ts
 import { NextFunction, Request, Response } from "express";
-import { ApiResponse } from "@/controllers/BaseController";
+import { ApiResponse } from "@repo/shared";
 
 export function wrapAsync(
   controller: (req: Request, res: Response) => Promise<Response<ApiResponse>>

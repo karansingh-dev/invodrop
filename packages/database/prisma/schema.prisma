@@ -80,48 +80,45 @@ enum ActivityPriority {
 }
 
 model User {
-  id String @id @default(uuid()) @db.Uuid
+  // Better-auth
+  id            String    @id
+  name          String
+  email         String
+  emailVerified Boolean   @map("email_verified")
+  image         String?
+  createdAt     DateTime  @map("created_at")
+  updatedAt     DateTime  @map("updated_at")
+  sessions      Session[]
+  accounts      Account[]
 
-  // Essential user data
-  email        String @unique @db.VarChar(100)
-  passwordHash String @map("password_hash") @db.VarChar(100)
-
-  // General information
-  firstName String @map("first_name") @db.VarChar(50)
-  lastName  String @map("last_name") @db.VarChar(50)
-
-  // Access
+  // System
   role Role @default(USER)
 
-  // Other information
   onboardingCompleted Boolean @default(false) @map("onboarding_completed")
   timezone            String? @db.VarChar(30)
-
-  // Verification
-  isEmailVerified           Boolean  @default(false) @map("is_email_verified")
-  verificationCode          String   @map("verification_code") @db.VarChar(10)
-  verificationCodeExpiresAt DateTime @map("verification_code_expires_at")
-
-  // System related
-  createdAt DateTime @default(now()) @map("created_at")
-  updatedAt DateTime @updatedAt @map("updated_at")
 
   deleted   Boolean   @default(false)
   deletedAt DateTime? @map("deleted_at")
 
-  companies Company[] @relation("CompanyOwner")
+  company      Company?      @relation("CompanyOwner")
+  paymentTerms PaymentTerm[]
+  clients      Client[]
+  taxes        Tax[]
+  products     Product[]
+  invoices     Invoice[]
+  activities   Activity[]
+  payments     Payment[]
 
-  @@index([email])
+  @@unique([email])
   @@map("user")
 }
 
 model Company {
   id     String @id @default(uuid()) @db.Uuid
-  userId String @map("owner_id") @db.Uuid
+  userId String @map("user_Id")
   user   User   @relation("CompanyOwner", fields: [userId], references: [id], onDelete: Cascade)
 
   name String @db.VarChar(255)
-  slug String @unique @db.VarChar(100)
 
   // Address
   addressLine1 String  @map("address_line_1") @db.VarChar(255)
@@ -150,33 +147,19 @@ model Company {
   nextInvoiceNumber Int    @default(1) @map("next_invoice_number")
   invoicePrefix     String @map("invoice_prefix") @db.VarChar(10)
 
-  // Status
-  isActive Boolean @default(true) @map("is_active")
-
   // System
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  //  Company owns all business resources
-
-  products     Product[]
-  taxes        Tax[]
-  clients      Client[]
-  invoices     Invoice[]
-  payments     Payment[]
-  paymentTerms PaymentTerm[]
-  activities   Activity[]
-
+  @@unique([userId])
   @@index([userId])
-  @@index([slug])
-  @@index([isActive])
   @@map("company")
 }
 
 model PaymentTerm {
-  id        String  @id @default(uuid()) @db.Uuid
-  companyId String  @map("company_id") @db.Uuid
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_Id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Payment term details
 
@@ -189,15 +172,15 @@ model PaymentTerm {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([companyId, isDefault])
-  @@index([companyId, isActive])
+  @@unique([userId, isDefault])
+  @@index([userId, isActive])
   @@map("payment_term")
 }
 
 model Client {
-  id        String  @id @default(uuid()) @db.Uuid
-  companyId String  @map("company_id") @db.Uuid
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   name String @db.VarChar(255)
 
@@ -209,26 +192,26 @@ model Client {
   // Billing Address (Required)
   billingAddressLine1 String  @map("billing_address_line_1") @db.VarChar(255)
   billingAddressLine2 String? @map("billing_address_line_2") @db.VarChar(255)
-  billingCity         String  @map("billing_city_id") @db.VarChar(50)
+  billingCity         String  @map("billing_city") @db.VarChar(50)
 
-  billingState      String @map("billing_state_id") @db.VarChar(50)
-  billingCountry    String @map("billing_country_id") @db.VarChar(2)
+  billingState      String @map("billing_state") @db.VarChar(50)
+  billingCountry    String @map("billing_country") @db.VarChar(2)
   billingPostalCode String @map("billing_postal_code") @db.VarChar(15)
 
   // Shipping Address (Optional - defaults to billing)
   shippingAddressLine1 String? @map("shipping_address_line_1")
   shippingAddressLine2 String? @map("shipping_address_line_2")
-  shippingCity         String? @map("shipping_city_id") @db.VarChar(50)
+  shippingCity         String? @map("shipping_city") @db.VarChar(50)
 
-  shippingState String? @map("shipping_state_id") @db.VarChar(50)
+  shippingState String? @map("shipping_state") @db.VarChar(50)
 
-  shippingCountry String? @map("shipping_country_id") @db.VarChar(2) //3166 alpah-2
+  shippingCountry String? @map("shipping_country") @db.VarChar(2) //3166 alpah-2
 
   shippingPostalCode    String? @map("shipping_postal_code") @db.VarChar(15)
-  shippingSameAsBilling Boolean @default(true) @map("shipping_same_as_billing")
+  shippingSameAsBilling Boolean @map("shipping_same_as_billing")
 
   // Optional
-  taxId   String? @db.VarChar(30)
+  taxId   String? @map("tax_id") @db.VarChar(30)
   website String? @db.VarChar(100)
 
   // Analytics 
@@ -236,26 +219,25 @@ model Client {
   totalBilledAmount Decimal @default(0) @map("total_billed_amount") @db.Decimal(12, 2)
 
   // Status
-  status ClientStatus
+  isActive Boolean @map("is_active")
 
   // System 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  // Relations 
   invoices Invoice[]
 
   // Constraints
-  @@unique([companyId, email])
-  @@index([companyId, status])
-  @@index([companyId, name])
+  @@unique([userId, email])
+  @@index([userId, isActive])
+  @@index([userId, name])
   @@map("client")
 }
 
 model Product {
-  id        String  @id @default(uuid()) @db.Uuid
-  companyId String  @map("company_id") @db.Uuid
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Details
   type        ProductType
@@ -272,15 +254,15 @@ model Product {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([companyId, isActive])
-  @@index([companyId, type])
+  @@index([userId, isActive])
+  @@index([userId, type])
   @@map("product")
 }
 
 model Tax {
-  id        String  @id @default(uuid()) @db.Uuid
-  companyId String  @map("company_id") @db.Uuid
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   name      String  @db.VarChar(50)
   rate      Decimal @db.Decimal(5, 4)
@@ -291,18 +273,18 @@ model Tax {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@unique([companyId, isDefault])
-  @@unique([companyId, name])
-  @@index([companyId, isActive])
+  @@unique([userId, isDefault])
+  @@unique([userId, name])
+  @@index([userId, isActive])
   @@map("tax")
 }
 
 model Invoice {
-  id        String  @id @default(uuid()) @db.Uuid
-  companyId String  @map("company_id") @db.Uuid
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  clientId  String  @map("client_id") @db.Uuid
-  client    Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  id       String @id @default(uuid()) @db.Uuid
+  userId   String @map("user_id")
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clientId String @map("client_id") @db.Uuid
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   // Essential Components
   invoiceNumber String        @map("invoice_number") @db.VarChar(50)
@@ -337,9 +319,9 @@ model Invoice {
   payments Payment[]
 
   // Constraints & Indexes
-  @@unique([companyId, invoiceNumber])
-  @@index([companyId, status, dueDate])
-  @@index([companyId, createdAt(sort: Desc)])
+  @@unique([userId, invoiceNumber])
+  @@index([userId, status, dueDate])
+  @@index([userId, createdAt(sort: Desc)])
   @@index([clientId, status])
   @@map("invoice")
 }
@@ -370,8 +352,8 @@ model InvoiceItem {
 
 model Payment {
   id        String  @id @default(uuid()) @db.Uuid
-  companyId String  @map("company_id") @db.Uuid
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  userId    String  @map("user_id")
+  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   invoiceId String  @map("invoice_id") @db.Uuid
   invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
@@ -387,15 +369,15 @@ model Payment {
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([companyId, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
   @@index([invoiceId])
   @@map("payment")
 }
 
 model Activity {
-  id        String  @id @default(uuid()) @db.Uuid
-  companyId String  @map("company_id") @db.Uuid
-  company   Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  id     String @id @default(uuid()) @db.Uuid
+  userId String @map("user_id")
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   // Activity Details
   type        ActivityType
@@ -409,8 +391,53 @@ model Activity {
   // System
   createdAt DateTime @default(now()) @map("created_at")
 
-  @@index([companyId, createdAt(sort: Desc)])
-  @@index([companyId, type, createdAt(sort: Desc)])
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, type, createdAt(sort: Desc)])
   @@index([resourceType, resourceId])
   @@map("activity")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime
+  updatedAt DateTime
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime
+  updatedAt             DateTime
+
+  @@map("account")
+}
+
+model Verification {
+  id         String    @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime?
+  updatedAt  DateTime?
+
+  @@map("verification")
 }

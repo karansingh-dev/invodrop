@@ -13,6 +13,8 @@ export function renderTemplate(templateName: string, data: object): string {
     viewsFolderPath,
     `${templateName}.ejs`
   );
+
   const template = fs.readFileSync(templatePath, "utf-8");
+
   return ejs.render(template, data);
 }
