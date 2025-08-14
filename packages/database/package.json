@@ -4,7 +4,7 @@
   "devDependencies": {
     "@repo/typescript-config": "workspace:*",
     "@types/node": "^24.1.0",
-    "prisma": "^6.12.0"
+    "prisma": "^6.14.0"
   },
   "exports": {
     ".": "./src/index.ts"
@@ -15,7 +15,7 @@
     "db:push": "prisma db push --skip-generate"
   },
   "dependencies": {
-    "@prisma/client": "^6.12.0",
+    "@prisma/client": "^6.14.0",
     "@repo/logger": "workspace:*",
     "tsx": "^4.20.3"
   }
