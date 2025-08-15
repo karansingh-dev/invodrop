@@ -1,14 +1,14 @@
 import { z } from "zod";
 
 export const createCompanySchema = z.object({
-  // Basic company info
+
   name: z
     .string()
     .min(1, "Company name is required")
     .max(100, "Company name must not exceed 100 characters")
     .trim(),
 
-  // Address fields - all required based on your schema
+  
   addressLine1: z
     .string()
     .min(1, "Address line 1 is required")

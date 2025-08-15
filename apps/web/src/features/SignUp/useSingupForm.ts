@@ -7,7 +7,6 @@ import { SignUpDataType, signUpSchema } from "@repo/shared";
 import { onZodError } from "@/lib/zod-error-handler";
 import { useRouter } from "next/navigation";
 
-
 export const useSignupForm = () => {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
