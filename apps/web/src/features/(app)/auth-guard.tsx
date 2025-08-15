@@ -7,29 +7,24 @@ import { ExtendedUser } from "@/types/better-auth/extendedUser";
 import { LoadingScreen } from "@/components/molecules/loading-screen";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
-    const router = useRouter();
-    const { data: session, isPending } = useSession();
+  const router = useRouter();
+  const { data: session, isPending} = useSession();
 
-
-    useEffect(() => {
-
-        if (!isPending && !session) {
-            router.replace("/auth/login");
-        } else if (
-            !isPending &&
-            session &&
-            !(session.user as ExtendedUser).onboardingCompleted
-        ) {
-
-
-            router.replace("/onboarding");
-        }
-    }, [isPending, session]);
-
-
-    if (isPending || !session) {
-        return <LoadingScreen />;
+  useEffect(() => {
+    if (!isPending && !session) {
+      router.replace("/auth/login");
+    } else if (
+      !isPending &&
+      session &&
+      !(session.user as ExtendedUser).onboardingCompleted
+    ) {
+      router.replace("/onboarding");
     }
+  }, [isPending, session]);
 
-    return <>{children}</>;
+  if (isPending || !session) {
+    return <LoadingScreen />;
+  }
+
+  return <>{children}</>;
 }

@@ -1,19 +1,9 @@
-
 import { OnboardAuth } from "@/features/onboarding/onboard-auth";
 
-
 export default function AppLayout({
-    children,
+  children,
 }: Readonly<{
-    children: React.ReactNode;
+  children: React.ReactNode;
 }>) {
-
-
-    return (
-        <OnboardAuth>
-            {children}
-        </OnboardAuth>
-
-
-    );
+  return <OnboardAuth>{children}</OnboardAuth>;
 }
