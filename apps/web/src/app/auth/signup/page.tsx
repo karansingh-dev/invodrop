@@ -9,7 +9,7 @@ import { useEffect, useState } from "react";
 export default function SignUp() {
   const router = useRouter();
 
-  const [verificationRequired, setVerificationRequired] =
+  const [verificationRequired, setVerificationRequired,] =
     useState<boolean>(false);
 
   const searchParams = useSearchParams();

@@ -35,6 +35,35 @@ export const auth = betterAuth({
     enabled: true,
     autoSignIn: false,
     requireEmailVerification: true,
+
+    sendResetPassword: async ({ user, url }) => {
+      try {
+        const name = user.name;
+        const resetPasswordUrl = url;
+        console.log("reaching");
+
+        const html = renderTemplate("reset-password-email-template", {
+          name,
+          resetPasswordUrl,
+        });
+
+        const emailId = await sendEmail({
+          to: user.email,
+          subject: "Reset Password",
+          html,
+        });
+        logger.info("reset password Email sent", { emailId, success: true });
+      } catch (error: any) {
+        logger.error("Failed to send reset password email ", {
+          success: false,
+        });
+        throw new ApiError(400, "Failed to send reset password  email", [
+          "reset password email failed",
+          "invalid email",
+        ]);
+      }
+    },
+    resetPasswordTokenExpiresIn: 60 * 60,
   },
 
   socialProviders: {
@@ -49,6 +78,7 @@ export const auth = betterAuth({
 
   emailVerification: {
     sendOnSignUp: true,
+
     sendVerificationEmail: async ({ user, url }) => {
       try {
         const name = user.name;

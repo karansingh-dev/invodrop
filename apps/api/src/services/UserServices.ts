@@ -3,7 +3,6 @@ import { UserRepository } from "../repositories/UserRepository";
 import { ApiError } from "@/utils/ApiError";
 import {
   CreateCompanyData,
-  FileExtensionType,
   isCountrySupported,
   isCurrencySupported,
 } from "@repo/shared";
