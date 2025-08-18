@@ -15,7 +15,7 @@ import Link from "next/link";
 import { Eye, EyeOffIcon } from "lucide-react";
 import OrSeparator from "@/components/atoms/or-separator";
 import BasicLoader from "@/components/atoms/basic-loader";
-import { useSignupForm } from "./useSingupForm";
+import { useSignupForm } from "../hooks/useSingupForm";
 import { useState } from "react";
 import { signInWithGoogle } from "@/actions/google-auth-action";
 

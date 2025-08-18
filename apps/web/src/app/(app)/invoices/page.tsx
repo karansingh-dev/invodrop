@@ -1,11 +1,3 @@
-
-
-
 export default function Invoices() {
-
-
-    return <div>
-        invoice
-    </div>
-
+  return <div>invoice</div>;
 }

@@ -1,8 +1,8 @@
 "use client";
 
-import ForgotPasswordForm from "@/features/forgot-password/forgot-password-form";
-import ResetPasswordUrlSent from "@/features/forgot-password/reset-password-email";
-import { useForgotPasswordForm } from "@/features/forgot-password/useForgotPassword";
+import ForgotPasswordForm from "@/features/auth/forgot-password/components/forgot-password-form";
+import ResetPasswordUrlSent from "@/features/auth/forgot-password/components/reset-password-email";
+import { useForgotPasswordForm } from "@/features/auth/forgot-password/hooks/useForgotPassword";
 
 export default function ForgotPassword() {
   const forgot = useForgotPasswordForm();

@@ -1,6 +1,3 @@
-
-
-
 export const uploadFile = async (file: File, uploadUrl: string) => {
   try {
     const res = await fetch(uploadUrl, {

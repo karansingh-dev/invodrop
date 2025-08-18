@@ -8,7 +8,7 @@ import { LoadingScreen } from "@/components/molecules/loading-screen";
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();
-  const { data: session, isPending} = useSession();
+  const { data: session, isPending } = useSession();
 
   useEffect(() => {
     if (!isPending && !session) {

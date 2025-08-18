@@ -16,7 +16,7 @@ import { Eye, EyeOffIcon } from "lucide-react";
 import { useState } from "react";
 import OrSeparator from "@/components/atoms/or-separator";
 import BasicLoader from "@/components/atoms/basic-loader";
-import { useSigninForm } from "./useSigninForm";
+import { useSigninForm } from "../hooks/useSigninForm";
 import { signInWithGoogle } from "@/actions/google-auth-action";
 
 export default function LoginForm() {

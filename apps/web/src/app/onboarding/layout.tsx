@@ -1,4 +1,4 @@
-import { OnboardAuth } from "@/features/onboarding/onboard-auth";
+import { OnboardAuth } from "@/features/onboarding/components/onboard-auth";
 
 export default function AppLayout({
   children,

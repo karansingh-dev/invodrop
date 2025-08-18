@@ -1,4 +1,3 @@
-
 import { Resend } from "resend";
 import { ApiError } from "@/utils/ApiError";
 import { logger } from "@repo/logger";

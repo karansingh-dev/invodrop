@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { email, z } from "zod";
 
 export const signUpSchema = z.object({
   name: z
@@ -45,13 +45,17 @@ export const resetPasswordSchema = z.object({
       message:
         "Password must include at least one uppercase letter, one lowercase letter, and one number",
     }),
-    token:z.string()
+  token: z.string(),
+});
 
-})
+export const resendVerifyEmailSchema = z.object({
+  email: z.email({ message: "Please enter a valid email address" }).trim(),
+});
 
-export type ResetPasswordType = z.infer<typeof resetPasswordSchema>
+export type ResendVerifyEmailType = z.infer<typeof resendVerifyEmailSchema>;
+export type ResetPasswordType = z.infer<typeof resetPasswordSchema>;
 
-export type ForgotPasswordDataType = z.infer<typeof forgotPasswordSchema>
+export type ForgotPasswordDataType = z.infer<typeof forgotPasswordSchema>;
 
 export type SignInDataType = z.infer<typeof signInSchema>;
 export type SignUpDataType = z.infer<typeof signUpSchema>;

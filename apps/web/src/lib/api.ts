@@ -1,4 +1,3 @@
-// lib/api.ts
 import { ApiResponse } from "@repo/shared";
 import { axiosInstance } from "./axios";
 

@@ -1,15 +1,15 @@
 "use client";
 import InvoDropLogo from "@/components/atoms/invodrop-logo";
 import TermsAndPolicy from "@/components/atoms/term-policy";
-import SignUpForm from "@/features/SignUp/signup-form";
-import VerifyEmail from "@/features/SignUp/verify-email";
+import SignUpForm from "@/features/auth/SignUp/components/signup-form";
+import VerifyEmail from "@/features/auth/SignUp/components/verify-email";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function SignUp() {
   const router = useRouter();
 
-  const [verificationRequired, setVerificationRequired,] =
+  const [verificationRequired, setVerificationRequired] =
     useState<boolean>(false);
 
   const searchParams = useSearchParams();

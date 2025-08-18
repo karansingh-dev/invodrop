@@ -1,5 +1,4 @@
-import { AuthGuard } from "@/features/(app)/auth-guard";
-
+import { AuthGuard } from "@/features/(app)/components/auth-guard";
 import SideBar from "@/components/molecules/sidebar";
 import Header from "@/components/molecules/header";
 

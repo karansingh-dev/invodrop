@@ -1,14 +1,13 @@
-import { apiRequest } from "@/lib/api";
+import { useState } from "react";
+import { useForm, SubmitHandler } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useRouter } from "next/navigation";
+import toast from "react-hot-toast";
+import { CreateCompanyData, createCompanySchema } from "@repo/shared";
+import { useSession } from "@/lib/auth-client";
 import { getUploadUrl } from "@/lib/getUploadUrl";
 import { uploadFile } from "@/lib/uploadFile";
-import { CreateCompanyData, createCompanySchema } from "@repo/shared";
-import { useMutation } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { SubmitHandler, useForm } from "react-hook-form";
-import toast from "react-hot-toast";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useSession } from "@/lib/auth-client";
+import { useOnboardingMutation } from "../mutations/useOnboardingMutation";
 
 export const useOnboardingForm = () => {
   const router = useRouter();
@@ -18,18 +17,15 @@ export const useOnboardingForm = () => {
     useForm<CreateCompanyData>({
       resolver: zodResolver(createCompanySchema),
       shouldUnregister: false,
-
       defaultValues: {
         name: "",
         logoUrl: "",
-
         addressLine1: "",
         addressLine2: "",
         city: "",
         state: "",
         country: "IN",
         postalCode: "",
-
         defaultCurrency: "INR",
         invoicePrefix: "INV-",
         defaultInvoiceNote: "Thank you for your business.",
@@ -45,22 +41,13 @@ export const useOnboardingForm = () => {
   const country = watch("country");
   const defaultCurrency = watch("defaultCurrency");
 
-  const { mutate, isPending } = useMutation({
-    mutationFn: async (data: CreateCompanyData) => {
-      return await apiRequest<string, CreateCompanyData>("/user/onboarding", {
-        method: "POST",
-        data: data,
-        protected: true,
-      });
-    },
-  });
+  const { mutate, isPending } = useOnboardingMutation();
 
   const onSubmit: SubmitHandler<CreateCompanyData> = async (formData) => {
     mutate(formData, {
       onSuccess: (response) => {
         if (response.success) {
           toast.success(response.message);
-
           reset();
           refetch();
           router.push("/dashboard");
@@ -68,6 +55,10 @@ export const useOnboardingForm = () => {
           toast.error(response.message || "Something went wrong");
           reset();
         }
+      },
+      onError: (error) => {
+        toast.error("Failed to create company. Please try again.");
+        console.error("Onboarding error:", error);
       },
     });
   };
@@ -79,8 +70,8 @@ export const useOnboardingForm = () => {
   const handleCurrency = (value: string) => {
     setValue("defaultCurrency", value);
   };
-  const [currentStep, setCurrentStep] = useState<number>(1);
 
+  const [currentStep, setCurrentStep] = useState<number>(1);
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
 
   const handleLogoUpload = async (file: File) => {
