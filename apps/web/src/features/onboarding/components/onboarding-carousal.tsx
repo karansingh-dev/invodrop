@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/card";
 import { onZodError } from "@/lib/zod-error-handler";
 import BasicLoader from "@/components/atoms/basic-loader";
-import { useOnboardingForm } from "./useOnboardingForm";
+import { useOnboardingForm } from "../hooks/useOnboardingForm";
 import OnboardingStep1 from "./onboarding-step-1";
 import OnboardingStep2 from "./onboarding-step-2";
 import OnboardingStep3 from "./onboarding-step-3";

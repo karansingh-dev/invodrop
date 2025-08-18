@@ -7,5 +7,5 @@ export const getContentType = (extension: string): string => {
     webp: "image/webp",
     svg: "image/svg+xml",
   };
-  return mimeTypes[extension.toLowerCase()] || "image/png"; 
+  return mimeTypes[extension.toLowerCase()] || "image/png";
 };

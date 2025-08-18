@@ -1,10 +1,9 @@
 "use client";
 import BasicLoader from "@/components/atoms/basic-loader";
 import SuccessCheck from "@/components/atoms/success-check";
-
 import { useSearchParams } from "next/navigation";
 import { useRouter } from "next/navigation";
-import { useSignupForm } from "./useSingupForm";
+import { useBetterAuth } from "@/hooks/useBetterAuth";
 
 interface verifyPageProps {
   onBackToSignUp: () => void;
@@ -14,8 +13,7 @@ export default function VerifyEmail({ onBackToSignUp }: verifyPageProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const email = searchParams.get("email");
-
-  const { resendVerificationEmail } = useSignupForm();
+  const {resendVerificationEmail} = useBetterAuth();
 
   return (
     <div className="space-y-8 w-full max-w-md mx-auto text-center ">

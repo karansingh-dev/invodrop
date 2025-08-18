@@ -2,7 +2,7 @@
 import { useSignOut } from "@/actions/logout";
 import BasicLoader from "@/components/atoms/basic-loader";
 import { Button } from "@/components/ui/button";
-import OnboardingCarousal from "@/features/onboarding/onboarding-carousal";
+import OnboardingCarousal from "@/features/onboarding/components/onboarding-carousal";
 
 export default function Onboarding() {
   const { signOut, loading } = useSignOut();

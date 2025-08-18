@@ -46,7 +46,7 @@ export default function SideBar() {
       <nav className="flex-1 overflow-y-auto px-2">
         {/* Main Section */}
         <div>
-          <h2 className="mb-2 text-xs text-muted-foreground font-bold uppercase tracking-wider px-4">
+          <h2 className="mb-3 text-xs text-muted-foreground font-bold uppercase tracking-wider px-4">
             Main
           </h2>
           <div>
@@ -58,7 +58,7 @@ export default function SideBar() {
                   "flex items-center gap-3 mb-1 rounded-md px-4 py-2 text-sm font-medium transition-colors",
                   pathname === to
                     ? "bg-primary/10 text-primary"
-                    : "hover:bg-muted/50 hover:text-accent-foreground text-muted-foreground"
+                    : "hover:bg-foreground/10 hover:text-accent-foreground text-muted-foreground"
                 )}
               >
                 <Icon className="h-4 w-4" />
@@ -94,8 +94,9 @@ export default function SideBar() {
       </nav>
 
       {/* User profile pinned at bottom */}
-
-      <UserProfile />
+      <div className="p-2 border-t">
+        <UserProfile />
+      </div>
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { OnboardingFormType, useOnboardingForm } from "./useOnboardingForm";
+import { OnboardingFormType, useOnboardingForm } from "../hooks/useOnboardingForm";
 
 export default function OnboardingStep4({ register }: OnboardingFormType) {
   return (

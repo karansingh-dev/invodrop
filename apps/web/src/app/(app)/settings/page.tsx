@@ -1,14 +1,3 @@
-
-
-
-
-
-
 export default function Settings() {
-
-
-    return <div>
-        invoice
-    </div>
-
+  return <div>invoice</div>;
 }

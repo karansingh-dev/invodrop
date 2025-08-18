@@ -1,5 +1,5 @@
 import { Label } from "@/components/ui/label";
-import { OnboardingFormType, useOnboardingForm } from "./useOnboardingForm";
+import { OnboardingFormType, useOnboardingForm } from "../hooks/useOnboardingForm";
 import {
   Select,
   SelectContent,

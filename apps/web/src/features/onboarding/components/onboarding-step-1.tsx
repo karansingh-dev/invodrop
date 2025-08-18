@@ -2,7 +2,7 @@ import BasicLoader from "@/components/atoms/basic-loader";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
-import { OnboardingFormType } from "./useOnboardingForm";
+import { OnboardingFormType } from "../hooks/useOnboardingForm";
 
 export default function OnboardingStep1({
   register,

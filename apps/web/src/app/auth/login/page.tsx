@@ -1,6 +1,6 @@
 import InvoDropLogo from "@/components/atoms/invodrop-logo";
 import TermsAndPolicy from "@/components/atoms/term-policy";
-import LoginForm from "@/features/Login/login-form";
+import LoginForm from "@/features/auth/Login/components/login-form";
 
 export default function Login() {
   return (

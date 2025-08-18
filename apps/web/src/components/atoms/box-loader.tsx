@@ -1,18 +1,18 @@
 import styled from "styled-components";
 
 const BoxLoader = () => {
-    return (
-        <StyledWrapper>
-            <div className="loader">
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-                <span />
-            </div>
-        </StyledWrapper>
-    );
+  return (
+    <StyledWrapper>
+      <div className="loader">
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+        <span />
+      </div>
+    </StyledWrapper>
+  );
 };
 
 const StyledWrapper = styled.div`

@@ -1,34 +1,30 @@
 "use client";
-
-import BasicLoader from "@/components/atoms/basic-loader";
-import { Button } from "@/components/ui/button";
 import {
   Card,
+  CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { onZodError } from "@/lib/zod-error-handler";
-import {  UseForgotPasswordReturn } from "./useForgotPassword";
+import { Button } from "@/components/ui/button";
+import BasicLoader from "@/components/atoms/basic-loader";
+import { useResendVerifyEmail } from "../hooks/useResendVerifyEmailForm";
+import Link from "next/link";
 
-export default function ForgotPasswordForm({
-  register,
-  handleSubmit,
-  onSubmit,
-  errors,
-  loading,
-}: UseForgotPasswordReturn) {
-
+export default function ResendVerifyEmail() {
+  const { handleSubmit, onSubmit, register, errors, loading, emailSent } =
+    useResendVerifyEmail();
 
   return (
-    <Card className="w-120">
+    <Card className="w-120 mt-50">
       <CardHeader>
-        <CardTitle>Forgot Password</CardTitle>
+        <CardTitle>Resend Verification Email</CardTitle>
         <CardDescription>
-          Enter the email used for the account. We’ll send a reset password
-          link.
+          Enter the email used for the account. We’ll send a New Verification
+          Email link.
         </CardDescription>
       </CardHeader>
       <form id="forgotPassword" onSubmit={handleSubmit(onSubmit, onZodError)}>
@@ -62,10 +58,21 @@ export default function ForgotPasswordForm({
             disabled={loading}
             className="w-full inline-flex items-center justify-center rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground transition-opacity disabled:opacity-60"
           >
-            {loading ? <BasicLoader /> : "Send reset link"}
+            {loading ? <BasicLoader /> : emailSent ? "send again" : "send"}
           </Button>
         </div>
       </form>
+
+      <CardFooter>
+        <div className="text-center  text-sm">
+          <Link
+            href="/auth/login"
+            className="underline text-foreground underline-offset-4"
+          >
+            Back to login page
+          </Link>
+        </div>
+      </CardFooter>
     </Card>
   );
 }

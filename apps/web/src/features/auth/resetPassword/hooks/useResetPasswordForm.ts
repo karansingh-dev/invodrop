@@ -1,3 +1,4 @@
+import { useBetterAuth } from "@/hooks/useBetterAuth";
 import { resetPassword } from "@/lib/auth-client";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ResetPasswordType, resetPasswordSchema } from "@repo/shared";
@@ -14,7 +15,7 @@ export const useResetPasswordForm = () => {
   const token = searchParams.get("token");
   const errorFromUrl = searchParams.get("error");
 
-  const [loading, setLoading] = useState(false);
+  const { resetUserPassword, loading } = useBetterAuth();
 
   const hasError = !token || errorFromUrl === "INVALID_TOKEN";
 
@@ -29,28 +30,12 @@ export const useResetPasswordForm = () => {
 
   const [passwordVisible, setPasswordVisible] = useState<boolean>(false);
 
-  const onSubmit: SubmitHandler<ResetPasswordType> = async (data) => {
-    await resetPassword(
-      {
-        newPassword: data.newPassword,
-        token: data.token,
-      },
-      {
-        onRequest: () => {
-          setLoading(true);
-        },
-        onSuccess: () => {
-          toast.success("Password reset successfully");
-          router.push("/auth/login");
-          setLoading(false);
-        },
-        onError: () => {
-          toast.success("Failed to reset password");
-          router.push("/auth/forgot-password");
-          setLoading(false);
-        },
-      }
-    );
+  const onSubmit: SubmitHandler<ResetPasswordType> = async (formData) => {
+    try {
+      await resetUserPassword(formData);
+    } catch (error) {
+      console.log("reset password failed");
+    }
   };
 
   return {

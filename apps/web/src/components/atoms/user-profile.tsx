@@ -33,7 +33,7 @@ export function UserProfile() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="flex border-t p-2 items-center gap-2 hover:bg-foreground/10 py-2">
+      <DropdownMenuTrigger className="flex   p-2 rounded-md items-center gap-2 hover:bg-foreground/10 ">
         <Avatar className="h-8 w-8 rounded-lg">
           <AvatarImage
             src={(session.user as ExtendedUser).image as undefined | string}
@@ -52,7 +52,7 @@ export function UserProfile() {
         <ChevronsUpDown className="ml-auto size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent
-        className="w-(--radix-dropdown-menu-trigger-width)  min-w-56 rounded-lg ml-1 mb-4"
+        className="w-(--radix-dropdown-menu-trigger-width)  min-w-56 rounded-lg ml-3 mb-4"
         align="end"
         side="right"
         sideOffset={4}

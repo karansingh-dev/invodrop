@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { onZodError } from "@/lib/zod-error-handler";
 import { Eye, EyeOffIcon } from "lucide-react";
-import { useResetPasswordForm } from "./useResetPasswordForm";
+import { useResetPasswordForm } from "../hooks/useResetPasswordForm";
 
 export default function ResetPasswordForm() {
   const {
