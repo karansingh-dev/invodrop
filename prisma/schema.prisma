@@ -141,7 +141,10 @@ model Client {
   totalBilledAmount Decimal @default(0) @db.Decimal(12, 2)
 
   //relations
-  invoices Invoice[]
+  invoices  Invoice[]
+  // System
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   @@unique([userId, email])
 }
