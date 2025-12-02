@@ -27,15 +27,14 @@ export const newInvoiceSchema = z.object({
   subTotal: z.number(),
   taxAmount: z.number().optional(),
   grandTotal: z.number(),
-  taxRate: z.number().optional(),
-
+  taxRate: z.number().nonnegative().max(999.9999).optional(),
   balanceDue: z.number(),
 
   footerNote: z.string().optional(),
 });
 
 export const invoiceStatusSchemaForApi = z.object({
-    status:z.enum(["pending", "paid", "cancelled"])
-})
+  status: z.enum(["pending", "paid", "cancelled"]),
+});
 
-export const invoiceStatusSchema = z.enum(["pending", "paid", "cancelled"])
+export const invoiceStatusSchema = z.enum(["pending", "paid", "cancelled"]);

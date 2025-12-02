@@ -176,6 +176,13 @@ export default function Page() {
   }, [subTotal, taxAmount, grandTotal]);
 
   const onSubmit: SubmitHandler<NewInvoiceDataType> = async (data) => {
+
+    data.taxRate = Number(Number(data.taxRate).toFixed(4));
+  data.taxAmount = Number(Number(data.taxAmount).toFixed(2));
+  data.subTotal = Number(Number(data.subTotal).toFixed(2));
+  data.grandTotal = Number(Number(data.grandTotal).toFixed(2));
+  data.balanceDue = Number(Number(data.balanceDue).toFixed(2));
+  
     try {
       setLoading(true);
 
