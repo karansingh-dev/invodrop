@@ -62,3 +62,23 @@ export interface InvoiceDataType {
   grandTotal: string;
   status: InvoiceStatusDataType;
 }
+
+export interface Payments {
+  id: string;
+  invoice: {
+    id: string;
+    client: {
+      name: string;
+    };
+    invoiceNumber: string;
+  };
+
+  description: string | null;
+
+  createdAt: Date;
+  updatedAt: Date;
+  userId: string;
+  amount: string;
+  method: string;
+ 
+}

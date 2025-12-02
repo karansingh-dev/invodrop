@@ -27,6 +27,7 @@ import {
 
 import { apiRequestClient } from "@/lib/axios";
 import { ApiResponse, InvoiceDataType, InvoiceStatusDataType } from "@/types";
+import { downloadPdf } from "@/utils/download-pdf";
 import { getCurrencySymbol } from "@/utils/get-currency-symbol";
 import clsx from "clsx";
 import { format } from "date-fns";
@@ -178,6 +179,8 @@ export default function Page() {
     "Status",
   ];
 
+  
+
   return (
     <div className="flex flex-col gap-4">
       {/* header */}
@@ -305,7 +308,11 @@ export default function Page() {
                               view
                             </DropdownMenuItem>
 
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => {
+                                downloadPdf(inv.id);
+                              }}
+                            >
                               <Download className=" h-4 w-4" />
                               download
                             </DropdownMenuItem>

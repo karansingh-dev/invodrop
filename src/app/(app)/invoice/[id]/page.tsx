@@ -22,6 +22,7 @@ import { toast } from "sonner";
 import { apiRequestClient } from "@/lib/axios";
 import { getCurrencySymbol } from "@/utils/get-currency-symbol";
 import BoxLoader from "@/components/atoms/box-loader";
+import { downloadPdf } from "@/utils/download-pdf";
 
 interface Invoice {
   status: string;
@@ -150,7 +151,14 @@ export default function InvoiceDetailPage({ params }: IdProps) {
           </div>
         </div>
 
-        <Button variant="outline" size="sm" className="gap-2">
+        <Button
+          onClick={() => {
+            downloadPdf(invoice.id);
+          }}
+          variant="outline"
+          size="sm"
+          className="gap-2"
+        >
           <Download className="h-4 w-4" />
           Download PDF
         </Button>
