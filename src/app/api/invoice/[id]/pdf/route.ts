@@ -2,7 +2,8 @@
 import { createPdfToken } from "@/utils/pdf-token";
 import { NextRequest, NextResponse } from "next/server";
 import chromium from "@sparticuz/chromium";
-import puppeteer from "puppeteer-core";
+
+import puppeteer from "puppeteer";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -22,10 +23,14 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     const invoiceUrl = `${baseUrl.replace(/\/$/, "")}/pdf-view/${id}/${token}`;
 
+    const isLocal = !!process.env.CHROME_EXECUTABLE_PATH;
+
     const browser = await puppeteer.launch({
       args: chromium.args,
 
-      executablePath: await chromium.executablePath(),
+      executablePath: isLocal
+        ? process.env.CHROME_EXECUTABLE_PATH
+        : await chromium.executablePath(),
       headless: true,
     });
 
