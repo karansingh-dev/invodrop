@@ -78,6 +78,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       },
     });
   } catch (error) {
+    console.log(error);
     return NextResponse.json(
       {
         error: "Failed to generate PDF",
