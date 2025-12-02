@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { apiRequestClient } from "@/lib/axios";
-import { ApiResponse, Client, CreateClientDataType } from "@/types";
+import { ApiResponse, Client, CreateClientDataType, IdProps } from "@/types";
 import clsx from "clsx";
 import { ArrowLeft, Save } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -30,15 +30,13 @@ import { use, useEffect, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { toast } from "sonner";
 
-interface Props {
-  params: Promise<{ id: string }>;
-}
+
 
 interface DataResponse {
   client: Client;
 }
 
-export default function Page({ params }: Props) {
+export default function Page({ params }: IdProps) {
   const { id } = use(params);
   const router = useRouter();
   const [loading, setLoading] = useState(false);

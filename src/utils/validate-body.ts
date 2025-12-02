@@ -1,9 +1,10 @@
-import { ZodObject } from "zod";
+import { ZodEnum, ZodObject } from "zod";
 
-export const validateBody = <T>(schema: ZodObject<any>, body: unknown) => {
+export const validateBody = <T>(schema: ZodObject | ZodEnum, body: unknown) => {
   const validation = schema.safeParse(body);
 
   if (!validation.success) {
+    console.error(validation.error)
     return {
       success: false,
       data: null,

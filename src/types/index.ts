@@ -1,4 +1,5 @@
 import { createClientSchema } from "@/schema/client";
+import { invoiceStatusSchema, newInvoiceSchema } from "@/schema/invoice";
 import z from "zod";
 
 export interface ApiResponse<T = null> {
@@ -35,3 +36,16 @@ export interface Client {
 }
 
 export type ClientStatus = "all" | "active" | "inactive";
+
+
+export type NewInvoiceDataType = z.infer<typeof newInvoiceSchema>
+
+export type InvoiceStatusDataType = z.infer<typeof invoiceStatusSchema>;
+
+export interface Params {
+  params: Promise<{ id: string }>;
+}
+
+export interface IdProps {
+  params: Promise<{ id: string }>;
+}

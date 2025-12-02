@@ -99,20 +99,56 @@ export async function GET(req: Request) {
       );
     }
 
+    const userProfile = await prisma.userProfile.findUnique({
+      where: {
+        id: user.id,
+      },
+    });
+
+    if (!userProfile) {
+      return Response.json(
+        {
+          success: false,
+          message: "profile not found",
+          error: "user profile does not exists",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "20");
     const order = (searchParams.get("order") as ORDER) || ("desc" as ORDER);
     const skip = (page - 1) * limit;
+    const takeAll = Boolean(searchParams.get("takeAll")) || false;
+
+    if (takeAll) {
+      const clients = await prisma.client.findMany({
+        where: {
+          userId: user.id,
+        },
+
+        orderBy: {
+          createdAt: order,
+        },
+      });
+
+      return Response.json({
+        success: true,
+        message: "Clients fetched successfully",
+        data: {
+          clients,
+          currency: userProfile.currency,
+        },
+      });
+    }
 
     const totalClients = await prisma.client.count({
       where: {
         userId: user.id,
-      },
-    });
-    const userProfile = await prisma.userProfile.findUnique({
-      where: {
-        id: user.id,
       },
     });
 
@@ -142,7 +178,7 @@ export async function GET(req: Request) {
       message: "Clients fetched successfully",
       data: {
         clients,
-        currency: userProfile?.currency,
+        currency: userProfile.currency,
       },
       pagination,
     });

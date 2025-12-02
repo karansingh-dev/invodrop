@@ -200,12 +200,17 @@ export default function Page() {
 
       <div
         className={clsx(
-          loading && "flex justify-center  py-25",
+          (loading || filteredClients.length === 0) &&
+            "flex justify-center  py-25",
           "flex items-center flex-wrap gap-4"
         )}
       >
         {loading ? (
           <BoxLoader />
+        ) : filteredClients.length === 0 ? (
+          <div className="text-sm font-medium ">
+            No clients found, Try to create a new client
+          </div>
         ) : (
           filteredClients.map((c, idx) => {
             return (
