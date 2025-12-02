@@ -9,8 +9,21 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
+import { useRouter } from "next/navigation";
+import { authClient } from "@/lib/auth-client";
+import { toast } from "sonner";
 
 export function UserProfile() {
+  const logout = async () => {
+    try {
+      await authClient.signOut();
+      router.push("/login");
+    } catch (error) {
+      console.error("Failed to logout", error);
+      toast.error("Failed to logout");
+    }
+  };
+  const router = useRouter();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -22,11 +35,23 @@ export function UserProfile() {
       <DropdownMenuContent>
         <DropdownMenuLabel>My Account</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Profile</DropdownMenuItem>
-        <DropdownMenuItem>Billing</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            router.push("/invoice");
+          }}
+        >
+          Invoice
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={() => {
+            router.push("/client");
+          }}
+        >
+          Client
+        </DropdownMenuItem>
 
         <DropdownMenuSeparator />
-        <DropdownMenuItem>Log out</DropdownMenuItem>
+        <DropdownMenuItem onClick={logout}>Log out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

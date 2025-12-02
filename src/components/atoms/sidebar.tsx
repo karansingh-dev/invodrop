@@ -16,7 +16,7 @@ const links = [
   { to: "invoice", label: "Invoices", icon: FileTextIcon },
   { to: "client", label: "Clients", icon: Users2 },
   { to: "payment", label: "Payments", icon: Wallet2Icon },
-  { to: "report", label: "Reports", icon: ChartBarBig },
+  // { to: "report", label: "Reports", icon: ChartBarBig },
 ];
 
 export default function SideBar() {

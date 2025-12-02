@@ -37,8 +37,7 @@ export interface Client {
 
 export type ClientStatus = "all" | "active" | "inactive";
 
-
-export type NewInvoiceDataType = z.infer<typeof newInvoiceSchema>
+export type NewInvoiceDataType = z.infer<typeof newInvoiceSchema>;
 
 export type InvoiceStatusDataType = z.infer<typeof invoiceStatusSchema>;
 
@@ -48,4 +47,18 @@ export interface Params {
 
 export interface IdProps {
   params: Promise<{ id: string }>;
+}
+
+export interface InvoiceDataType {
+  id: string;
+  invoiceNumber: string;
+  issueDate: string;
+  dueDate: string;
+  client: {
+    id: string;
+    email: string;
+    name: string;
+  };
+  grandTotal: string;
+  status: InvoiceStatusDataType;
 }

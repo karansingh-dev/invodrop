@@ -34,4 +34,8 @@ export const newInvoiceSchema = z.object({
   footerNote: z.string().optional(),
 });
 
-export const invoiceStatusSchema = z.enum(["pending", "paid", "cancelled"]);
+export const invoiceStatusSchemaForApi = z.object({
+    status:z.enum(["pending", "paid", "cancelled"])
+})
+
+export const invoiceStatusSchema = z.enum(["pending", "paid", "cancelled"])

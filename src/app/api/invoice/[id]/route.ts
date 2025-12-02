@@ -1,12 +1,13 @@
 import prisma from "@/lib/prisma";
-import { invoiceStatusSchema } from "@/schema/invoice";
+import { invoiceStatusSchemaForApi } from "@/schema/invoice";
 import { Params, InvoiceStatusDataType } from "@/types";
 import { getUser } from "@/utils/get-user";
 import { handleError } from "@/utils/handle-error";
 import { validateBody } from "@/utils/validate-body";
 import { isUUID } from "@/utils/validate-uuid";
+import z from "zod";
 
-
+type StatusDateTypeForApi = z.infer<typeof invoiceStatusSchemaForApi>;
 
 export async function PATCH(req: Request, { params }: Params) {
   try {
@@ -56,8 +57,8 @@ export async function PATCH(req: Request, { params }: Params) {
     }
 
     const body = await req.json();
-    const validation = validateBody<InvoiceStatusDataType>(
-      invoiceStatusSchema,
+    const validation = validateBody<StatusDateTypeForApi>(
+      invoiceStatusSchemaForApi,
       body
     );
 
@@ -74,13 +75,29 @@ export async function PATCH(req: Request, { params }: Params) {
       }
     }
 
-    await prisma.invoice.update({
-      where: {
-        id,
-      },
-      data: {
-        status: validation.data,
-      },
+    await prisma.$transaction(async (tx) => {
+      //    Update invoice status
+      const updatedInvoice = await tx.invoice.update({
+        where: { id },
+        data: {
+          status: validation.data.status,
+          paidAt: validation.data.status === "paid" ? new Date() : null,
+        },
+      });
+
+      //  create payment only  if status is "paid"
+      let payment = null;
+
+      if (validation.data.status === "paid") {
+        payment = await tx.payment.create({
+          data: {
+            invoiceId: updatedInvoice.id,
+            userId: user.id,
+            amount: updatedInvoice.grandTotal,
+            method: "manual",
+          },
+        });
+      }
     });
 
     return Response.json(

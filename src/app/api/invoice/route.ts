@@ -1,8 +1,8 @@
-import { Invoice, InvoiceItem } from "@/generated/prisma/client";
-import { InvoiceItemCreateManyInvoiceInput } from "@/generated/prisma/models";
+import { Invoice } from "@/generated/prisma/client";
+
 import prisma from "@/lib/prisma";
 import { newInvoiceSchema } from "@/schema/invoice";
-import { NewInvoiceDataType } from "@/types";
+import { NewInvoiceDataType, ORDER } from "@/types";
 import { getUser } from "@/utils/get-user";
 import { handleError } from "@/utils/handle-error";
 import { validateBody } from "@/utils/validate-body";
@@ -164,6 +164,91 @@ export async function POST(req: Request) {
     return handleError({
       error,
       message: "Failed to create invoice",
+      route: req.url,
+    });
+  }
+}
+
+export async function GET(req: Request) {
+  try {
+    const user = await getUser();
+
+    if (!user) {
+      return Response.json(
+        { success: false, message: "Unauthorized", error: "Unauthorized" },
+        {
+          status: 403,
+        }
+      );
+    }
+
+    const userProfile = await prisma.userProfile.findUnique({
+      where: {
+        id: user.id,
+      },
+    });
+
+    if (!userProfile) {
+      return Response.json(
+        {
+          success: false,
+          message: "profile not found",
+          error: "user profile does not exists",
+        },
+        {
+          status: 404,
+        }
+      );
+    }
+
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "20");
+    const order = (searchParams.get("order") as ORDER) || ("desc" as ORDER);
+    const skip = (page - 1) * limit;
+
+    const totalInvoices = await prisma.invoice.count({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    const invoices = await prisma.invoice.findMany({
+      where: {
+        userId: user.id,
+      },
+      include: {
+        client: true,
+      },
+      take: limit,
+      skip,
+      orderBy: {
+        createdAt: order,
+      },
+    });
+    const totalPages = Math.ceil(totalInvoices / limit);
+
+    const pagination = {
+      totalPages,
+      total: totalInvoices,
+      page,
+      limit,
+      order,
+    };
+
+    return Response.json({
+      success: true,
+      message: "Invoices fetched successfully",
+      data: {
+        invoices,
+        currency: userProfile.currency,
+      },
+      pagination,
+    });
+  } catch (error) {
+    return handleError({
+      error,
+      message: "Failed to fetch invoices",
       route: req.url,
     });
   }

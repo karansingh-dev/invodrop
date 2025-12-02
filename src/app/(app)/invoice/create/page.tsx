@@ -516,10 +516,9 @@ export default function Page() {
                   <input
                     type="number"
                     step="0.01"
-                    min={0}
-                    {...register("taxRate")}
+                    min="0"
                     className="h-8 w-20 rounded-md border bg-transparent px-2 text-sm"
-                    value={watch("taxRate")}
+                    value={watch("taxRate") ?? 0}
                     onChange={(e) =>
                       setValue("taxRate", Number(e.target.value))
                     }
