@@ -1,5 +1,7 @@
+// app/api/pdf/[id]/route.ts  (or wherever your route lives)
 import { createPdfToken } from "@/utils/pdf-token";
 import { NextRequest, NextResponse } from "next/server";
+import chromium from "@sparticuz/chromium";
 import puppeteer from "puppeteer-core";
 
 export const dynamic = "force-dynamic";
@@ -12,34 +14,22 @@ interface RouteParams {
 export async function GET(request: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
-
     const token = createPdfToken({ invoiceId: id });
 
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    const baseUrl =
+      process.env.NEXT_PUBLIC_BASE_URL ??
+      `http://localhost:${process.env.PORT ?? 3000}`;
 
-    const invoiceUrl = `${baseUrl}/pdf-view/${id}/${token}`;
-
-    try {
-      new URL(invoiceUrl);
-    } catch {
-      return NextResponse.json(
-        { error: "Invalid URL configuration" },
-        { status: 500 }
-      );
-    }
+    const invoiceUrl = `${baseUrl.replace(/\/$/, "")}/pdf-view/${id}/${token}`;
 
     const browser = await puppeteer.launch({
+      args: chromium.args,
+
+      executablePath: await chromium.executablePath(),
       headless: true,
-      args: [
-        "--no-sandbox",
-        "--disable-setuid-sandbox",
-        "--disable-dev-shm-usage",
-        "--disable-gpu",
-      ],
     });
 
     const page = await browser.newPage();
-
     await page.setViewport({
       width: 1200,
       height: 1600,
@@ -48,10 +38,10 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
     await page.goto(invoiceUrl, {
       waitUntil: "networkidle0",
-      timeout: 30000,
+      timeout: 60000,
     });
 
-    await page.waitForSelector("table", { timeout: 10000 });
+    await page.waitForSelector("table", { timeout: 15000 });
 
     const pdfBuffer = await page.pdf({
       format: "A4",
@@ -78,11 +68,11 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       },
     });
   } catch (error) {
-    console.log(error);
+    console.error("PDF generation failed:", error);
     return NextResponse.json(
       {
         error: "Failed to generate PDF",
-        details: error instanceof Error ? error.message : "Unknown error",
+        details: error instanceof Error ? error.message : String(error),
       },
       { status: 500 }
     );
