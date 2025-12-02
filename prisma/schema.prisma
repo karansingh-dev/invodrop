@@ -7,55 +7,32 @@ datasource db {
   provider = "postgresql"
 }
 
-enum Role {
-  user
-  admin
-}
-
-enum InvoiceStatus {
-  pending
-  paid
-  cancelled
-}
-
-enum PaymentMethod {
-  manual
-  // more....
-}
-
-// Better-Auth models 
-
 model User {
-  id            String    @id
+  id            String       @id
   name          String
-  email         String
-  emailVerified Boolean   @default(false)
+  email         String       @unique
+  emailVerified Boolean      @default(false)
   image         String?
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  sessions      Session[]
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  role          Role         @default(user)
+  isOnboarded   Boolean      @default(false)
+  deleted       Boolean      @default(false)
+  deletedAt     DateTime?
+  clients       Client[]
+  invoices      Invoice[]
+  payments      Payment[]
+  profile       UserProfile?
   accounts      Account[]
+  sessions      Session[]
 
-  role        Role    @default(user)
-  isOnboarded Boolean @default(false)
-
-  deleted   Boolean   @default(false)
-  deletedAt DateTime?
-
-  //relations
-  profile  UserProfile?
-  clients  Client[]
-  invoices Invoice[]
-  payments Payment[]
-
-  @@unique([email])
   @@map("user")
 }
 
 model Session {
   id        String   @id
   expiresAt DateTime
-  token     String
+  token     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   ipAddress String?
@@ -63,7 +40,6 @@ model Session {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@unique([token])
   @@index([userId])
   @@map("session")
 }
@@ -73,7 +49,6 @@ model Account {
   accountId             String
   providerId            String
   userId                String
-  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
   refreshToken          String?
   idToken               String?
@@ -83,6 +58,7 @@ model Account {
   password              String?
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@map("account")
@@ -100,132 +76,106 @@ model Verification {
   @@map("verification")
 }
 
-// InvoDrop Models 
-
 model UserProfile {
-  id String @id
-
-  user User @relation(fields: [id], references: [id], onDelete: Cascade)
-
-  currency String
-
-  country String
-  address String
-  pincode String
-
-  website String?
-
-  logoUrl String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id           String   @id
+  currency     String
+  country      String
+  address      String
+  pincode      String
+  website      String?
+  logoUrl      String?
+  createdAt    DateTime @default(now())
+  invoiceCount Int      @default(0)
+  updatedAt    DateTime @updatedAt
+  user         User     @relation(fields: [id], references: [id], onDelete: Cascade)
 }
 
 model Client {
-  id String @id @default(uuid()) @db.Uuid
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  name          String
-  email         String
-  contactPerson String?
-
-  isActive Boolean
-
-  country String
-  address String
-  pincode String
-
-  invoiceCount      Int     @default(0)
-  totalBilledAmount Decimal @default(0) @db.Decimal(12, 2)
-
-  //relations
-  invoices  Invoice[]
-  // System
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id                String    @id @default(uuid()) @db.Uuid
+  userId            String
+  name              String
+  email             String
+  contactPerson     String?
+  isActive          Boolean
+  country           String
+  address           String
+  pincode           String
+  invoiceCount      Int       @default(0)
+  totalBilledAmount Decimal   @default(0) @db.Decimal(12, 2)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices          Invoice[]
 
   @@unique([userId, email])
 }
 
 model Invoice {
-  id       String @id @default(uuid()) @db.Uuid
-  userId   String
-  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  clientId String @db.Uuid
-  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
-
-  // Essential Components
+  id            String        @id @default(uuid()) @db.Uuid
+  userId        String
+  clientId      String        @db.Uuid
   invoiceNumber String
-  status        InvoiceStatus
+  status        InvoiceStatus @default(pending)
   issueDate     DateTime
   dueDate       DateTime
+  taxRate       Decimal?      @db.Decimal(5, 4)
   currency      String
+  paymentTerm   String
+  subTotal      Decimal       @db.Decimal(12, 2)
+  taxAmount     Decimal?      @db.Decimal(12, 2)
+  grandTotal    Decimal       @db.Decimal(12, 2)
+  balanceDue    Decimal       @db.Decimal(12, 2)
+  footerNote    String?
+  paidAt        DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  client        Client        @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items         InvoiceItem[]
+  payments      Payment[]
 
-  // Payment terms
-  paymentTerm String
-
-  // Financial calculations
-  subTotal   Decimal @db.Decimal(12, 2)
-  taxAmount  Decimal @db.Decimal(12, 2)
-  grandTotal Decimal @db.Decimal(12, 2)
-
-  balanceDue Decimal @db.Decimal(12, 2)
-
-  // Additional fields
-  footerNote String? @db.Text
-
-  // Status tracking
-
-  paidAt DateTime?
-
-  // System
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  items    InvoiceItem[]
-  payments Payment[]
-
-  // Constraints
   @@unique([userId, invoiceNumber])
 }
 
 model InvoiceItem {
-  id        String  @id @default(uuid()) @db.Uuid
-  invoiceId String  @db.Uuid
-  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-
+  id          String   @id @default(uuid()) @db.Uuid
+  invoiceId   String   @db.Uuid
   name        String
   description String?
-
-  unitPrice Decimal @db.Decimal(12, 2)
-  quantity  Decimal @db.Decimal(10, 3)
-
-  taxRate   Decimal? @db.Decimal(5, 4)
-  taxAmount Decimal? @db.Decimal(12, 2)
-
-  totalAmount Decimal @db.Decimal(12, 2)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  unitPrice   Decimal  @db.Decimal(12, 2)
+  quantity    Decimal  @db.Decimal(10, 3)
+  taxRate     Decimal? @db.Decimal(5, 4)
+  taxAmount   Decimal? @db.Decimal(12, 2)
+  totalAmount Decimal  @db.Decimal(12, 2)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 }
 
 model Payment {
-  id        String  @id @default(uuid()) @db.Uuid
-  userId    String
-  user      User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  invoiceId String  @db.Uuid
-  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  id          String        @id @default(uuid()) @db.Uuid
+  userId      String
+  invoiceId   String        @db.Uuid
+  amount      Decimal       @db.Decimal(12, 2)
+  method      PaymentMethod
+  description String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  invoice     Invoice       @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
 
-  amount Decimal @db.Decimal(12, 2)
+enum Role {
+  user
+  admin
+}
 
-  method PaymentMethod
+enum InvoiceStatus {
+  pending
+  paid
+  cancelled
+}
 
-  description String? @db.Text
-
-  // System
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+enum PaymentMethod {
+  manual
 }

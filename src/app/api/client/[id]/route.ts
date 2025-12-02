@@ -1,14 +1,11 @@
 import prisma from "@/lib/prisma";
 import { createClientSchema } from "@/schema/client";
-import { CreateClientDataType } from "@/types";
+import { CreateClientDataType, Params } from "@/types";
 import { getUser } from "@/utils/get-user";
 import { handleError } from "@/utils/handle-error";
 import { validateBody } from "@/utils/validate-body";
 import { isUUID } from "@/utils/validate-uuid";
 
-interface Params {
-  params: Promise<{ id: string }>;
-}
 
 export async function PUT(req: Request, { params }: Params) {
   try {

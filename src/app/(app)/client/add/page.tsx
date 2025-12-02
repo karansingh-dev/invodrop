@@ -92,7 +92,7 @@ export default function Page() {
             type="submit"
             variant="default"
           >
-            <Save className="mr-2 h-4 w-4" />
+            <Save className=" h-4 w-4" />
             {loading ? <BasicLoader /> : " Save Client"}
           </Button>
         </div>
@@ -217,7 +217,7 @@ export default function Page() {
             type="submit"
             variant="default"
           >
-            <Save className="mr-2 h-4 w-4" />
+            <Save className=" h-4 w-4" />
             {loading ? <BasicLoader /> : " Save Client"}
           </Button>
         </CardFooter>
