@@ -12,6 +12,7 @@ import {
   Download,
   Trash2,
   Plus,
+  Check,
 } from "lucide-react";
 
 import {
@@ -42,6 +43,8 @@ import { statusBadgeClass } from "../invoice/page";
 import { useRouter } from "next/navigation";
 import BasicLoader from "@/components/atoms/basic-loader";
 import clsx from "clsx";
+import { downloadPdf } from "@/utils/download-pdf";
+import { sendPdfToMail } from "@/utils/send-pdf-to-mail";
 
 interface DataResponse {
   invoices: InvoiceDataType[];
@@ -184,6 +187,42 @@ export default function DashboardMain() {
       </div>
     );
   }
+
+  const markPaid = async (id: string) => {
+    //    Store previous state to rollback if needed
+    const previousInvoices = [...recentInvoices];
+
+    setRecentInvoices((prev) =>
+      prev.map((inv) => (inv.id === id ? { ...inv, status: "paid" } : inv))
+    );
+
+    try {
+      const res = await apiRequestClient<ApiResponse>(
+        "PATCH",
+        `/invoice/${id}`,
+        {
+          data: { status: "paid" },
+        }
+      );
+
+      if (res.success) {
+        console.log("Invoice marked as paid");
+        toast.success("Invoice marked as paid");
+        return;
+      }
+
+      console.error("Failed to mark invoice paid:", res.error);
+      toast.error("Failed to update invoice. Rolling back changes...");
+      // rollback
+      setRecentInvoices(previousInvoices);
+    } catch (error) {
+      // rollback
+      console.error("Failed to mark invoice paid:", error);
+      toast.error("Something went wrong. Rolling back changes...");
+
+      setRecentInvoices(previousInvoices);
+    }
+  };
 
   return (
     <div className="flex flex-col gap-6">
@@ -409,16 +448,36 @@ export default function DashboardMain() {
                               view
                             </DropdownMenuItem>
 
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                await downloadPdf(inv.id);
+                              }}
+                            >
                               <Download className=" h-4 w-4" />
                               download
                             </DropdownMenuItem>
 
+                           
+                            <DropdownMenuItem
+                              onClick={async () => {
+                                await sendPdfToMail(inv.id);
+                              }}
+                            >
+                              <FileText className=" h-4 w-4" />
+                              Send Mail
+                            </DropdownMenuItem>
+
                             <DropdownMenuSeparator />
 
-                            <DropdownMenuItem className="text-rose-600">
-                              <Trash2 className=" h-4 w-4" />
-                              delete
+                            <DropdownMenuItem
+                              disabled={inv.status === "paid"}
+                              onClick={() => {
+                                markPaid(inv.id);
+                              }}
+                              className="text-green-600"
+                            >
+                              <Check className="  h-4 w-4" />
+                              Mark Paid
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>

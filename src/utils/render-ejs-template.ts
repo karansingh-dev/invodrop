@@ -12,6 +12,11 @@ type TemplateData = {
     verificationUrl: string;
     name: string;
   };
+  "pdf-main": {
+    clientName: string;
+    invoiceNumber: string;
+    year: string;
+  };
 };
 
 const __filename = fileURLToPath(import.meta.url);

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Invoice</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f8f9fa;
+      margin: 0;
+      padding: 24px;
+      color: #333;
+    }
+
+    .container {
+      background: #ffffff;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 32px;
+      border-radius: 10px;
+      border: 1px solid #e3e3e3;
+    }
+
+    h1 {
+      margin-bottom: 15px;
+      font-size: 22px;
+      color: #111;
+    }
+
+    p {
+      line-height: 1.5;
+      font-size: 15px;
+      color: #444;
+    }
+
+    .footer {
+      margin-top: 30px;
+      font-size: 13px;
+      color: #777;
+      text-align: center;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 18px;
+      background: #0070f3;
+      color: #fff !important;
+      padding: 12px 20px;
+      text-decoration: none;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 15px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>Hello <%= clientName %> 👋</h1>
+
+    <p>
+      Thank you for doing business with us. Please find attached your invoice:
+      <strong>#<%= invoiceNumber %></strong>
+    </p>
+
+    <p>If you have any questions, feel free to reply to this email.</p>
+
+   
+
+    <div class="footer">
+      <p>🔒 This PDF was securely generated.</p>
+      <p>© <%= year %> InvDrop. All rights reserved.</p>
+    </div>
+  </div>
+
+</body>
+</html>
