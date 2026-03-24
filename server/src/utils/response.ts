@@ -43,7 +43,9 @@ export const response = {
    */
   error(
     res: ExpressResponse,
+    message:string,
     error: string,
+    
     statusCode = 400,
   ) {
     const body: ApiResponse = {

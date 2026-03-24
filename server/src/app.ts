@@ -5,6 +5,9 @@ import { corsOptions } from "./config/global.js";
 import { env } from "./config/env.js";
 import { logger } from "./lib/pino.js";
 import { response } from "./utils/response.js";
+import db from "./lib/drizzle.js";
+import { sql } from "drizzle-orm";
+import { globalErrorHandler } from "./utils/global-error-handler.js";
 
 const app = express();
 
@@ -12,14 +15,30 @@ app.use(cors(corsOptions));
 
 app.use(bodyParser.json());
 
-app.get("/health", (req: Request, res: Response) => {
+app.get("/health", async (req: Request, res: Response) => {
   try {
-    return response.okMessage(res, "Healthy", 200);
+    await db.execute(sql`SELECT 1`);
+
+    const data = {
+      uptime: process.uptime(),
+      timestamp: Date.now(),
+    };
+
+    return response.ok(res, data, "Healthy", 200);
   } catch (error) {
-    logger.error({ message: "Failed to return server health", error });
-    return response.error(res, "Unhealthy", 500);
+    logger.error({ error }, "Health check DB failed");
+
+    return response.error(
+      res,
+      "Server not healthy",
+      "DATABASE_UNAVAILABLE",
+      503,
+    );
   }
 });
+
+
+app.use(globalErrorHandler);
 
 app.listen(env.PORT, (error: Error | undefined) => {
   if (!error) {
