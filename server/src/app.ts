@@ -14,9 +14,10 @@ app.use(bodyParser.json());
 
 app.get("/health", (req: Request, res: Response) => {
   try {
-    response.okMessage(res, "Healthy", 200);
+    return response.okMessage(res, "Healthy", 200);
   } catch (error) {
     logger.error({ message: "Failed to return server health", error });
+    return response.error(res, "Unhealthy", 500);
   }
 });
 
