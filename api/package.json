@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "tsx --watch src/main.ts",
     "start": "node dist/main.ts",
-    "prisma:generate": "prisma generate",
-    "prisma:migrate": "prisma migrate dev",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio"
   },
   "devDependencies": {
