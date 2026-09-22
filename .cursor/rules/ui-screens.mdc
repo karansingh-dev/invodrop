@@ -1,0 +1,62 @@
+---
+description: Screen catalog — match existing layouts, update after each UI brief
+globs: client/web/src/pages/**/*.tsx,client/web/screens.md
+alwaysApply: false
+---
+
+# Screens
+
+Source of truth: `client/web/screens.md`.
+
+On a UI brief, edit only the file the user named. After the layout ships, update this catalog.
+
+Do not treat catalog notes as permission to add logic. Layout and design only.
+
+## Sign up `/sign-up`
+
+- Page: `client/web/src/pages/auth/sign-up/index.tsx`
+- Form: `client/web/src/components/auth/sign-up/sign-up-form.tsx` (`SignUpForm`)
+- Panel: `client/web/src/components/auth/brand-panel.tsx` (`BrandPanel`)
+- Layout: split auth canvas — brand panel (`lg+`, `bg-sidebar`) | centered form (`max-w-sm`)
+- After successful sign-up: navigate to `/check-email` with `{ email }` in location state
+- Fields: name, email, password. Inputs use `h-10`. Password has a show/hide eye toggle
+
+## Check email `/check-email`
+
+- Page: `client/web/src/pages/auth/check-email/index.tsx`
+- Panel: `client/web/src/components/auth/check-email/check-email-panel.tsx` (`CheckEmailPanel`)
+- Layout: same split auth canvas as sign-up
+- Direct visit with no email → `/sign-up`. Signed in → `/dashboard` via `GuestLayout`
+
+## Sign in `/sign-in`
+
+- Page: `client/web/src/pages/auth/sign-in/index.tsx` (`SignInPage`)
+- Layout: same split auth canvas as sign-up
+- Fields: email, password with show/hide eye
+- CTA: “Sign in”. Forgot password is visual only. Footer link to `/sign-up`
+- Unverified email on sign-in → `/check-email`
+
+## Forgot password `/forgot-password`
+
+- Page: `client/web/src/pages/auth/forgot-password/index.tsx` (`ForgotPasswordPage`)
+- Form: `client/web/src/components/auth/forgot-password/forget-password-form.tsx` (`ForgotPasswordForm`)
+- Layout: same split auth canvas as sign-in
+- Fields: email. When `emailSent`, swap the field for a success message
+- CTA: “Send reset link” / “Send again”. Footer link to `/sign-in`
+
+## Reset password `/reset-password`
+
+- Page: `client/web/src/pages/auth/reset-password/index.tsx` (`ResetPasswordPage`)
+- Layout: same split auth canvas as sign-in
+- Form: `client/web/src/components/auth/reset-password/reset-password-form.tsx` (`ResetPasswordForm`)
+- Fields: new password, confirm password, each with a show/hide eye
+- Mismatch: “Passwords do not match.” under confirm (`FieldError`)
+- Missing token → “Reset link missing”. Invalid token (`error=INVALID_TOKEN`) → “Reset link expired”
+- CTA: “Reset password” or “Request a new link”. Footer link to `/sign-in`
+
+## Home `/`
+
+- Page: `client/web/src/pages/home/index.tsx` (`HomePage`)
+- Layout: full-viewport greeting. Two columns on `lg+` — copy + CTAs | invoice card. No form
+- CTA: “Get started” → `/sign-up`. “Sign in” → `/sign-in`
+

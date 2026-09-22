@@ -1,0 +1,65 @@
+---
+description: Invodrop UI briefs — one named file, structure and design only, no logic
+alwaysApply: true
+---
+
+# UI briefs
+
+When the user asks to create or change UI, they will name:
+
+1. The **page** or the **part of a screen**
+2. The **exact file** to edit
+
+Do only structure and visual design in that file. The user owns logic, hooks, routing, and splitting into more files.
+
+## Required brief
+
+Do not start until both are clear. If the file path is missing, ask for it. Do not invent a second file.
+
+Example brief: “Make the sign-in UI in `client/web/src/pages/auth/sign-in/index.tsx`.”
+
+## One file
+
+- Put the entire layout in the named file. Import existing shadcn (`@/components/ui/...`) and existing shared pieces (for example `BrandPanel`) if they already exist.
+- Do not create `*-form.tsx`, dialogs, hooks, or folders to “keep it clean.”
+- Do not extract components. Do not move code between files.
+- Do not edit any other file except `client/web/screens.md` (and `.cursor/rules/ui-screens.mdc` to match the catalog).
+- Do not add routes in `App.tsx` unless the user named `App.tsx`.
+
+## Design only — no logic
+
+**Do**
+
+- JSX structure, spacing, typography, empty/error visual states as markup
+- Semantic tokens: `bg-background`, `text-foreground`, `bg-primary`, `bg-sidebar`, `text-muted-foreground`, `bg-accent`, `bg-card`
+- Compose shadcn. Do not restyle primitives in `components/ui/`
+- Static links (`<Link to="/sign-up">`) as part of the layout
+- `onSubmit={(e) => e.preventDefault()}` so the page does not reload
+- Password show/hide `useState` **only** if they asked for the eye control
+
+**Do not**
+
+- Form field state, `onChange`, validation
+- `useBetterAuth`, `authClient`, fetch, API, toasts, `useNavigate` for flows
+- Auth, sessions, loading/disabled tied to a request
+- New color tokens or hex/oklch in components
+- Edit `client/web/src/index.css`
+
+```tsx
+// ❌ BAD — logic + extra files
+// created sign-in-form.tsx, called signIn(), navigated on success
+
+// ✅ GOOD — named page file only
+function SignInPage() {
+  return (
+    <main className="grid min-h-svh lg:grid-cols-2">
+      <BrandPanel />
+      <section>{/* fields, static links, preventDefault form */}</section>
+    </main>
+  )
+}
+```
+
+## After the layout ships
+
+Update `client/web/screens.md` with route, file, layout, shadcn pieces, fields, and `Logic: none`.

@@ -1,22 +1,28 @@
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
+import envVar from "./config";
+import { toNodeHandler } from "better-auth/node";
+import { auth } from "./lib/auth";
 
 const app = express();
 
 const corsOptions = {
-  origin: "http://localhost:5173",
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  origin: envVar.FRONTEND_URL,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  credentials: true,
 };
 
 app.use(cors(corsOptions));
+
+app.all('/api/auth/{*any}', toNodeHandler(auth));
 app.use(bodyParser.json());
 
-app.listen(8000, (err) => {
+app.listen(envVar.PORT, (err) => {
   if (err) {
     console.error("Error running server", err);
     return;
   }
 
-  console.log(`Server started running at port ${8000}`);
+  console.log(`Server started running at port ${envVar.PORT}`);
 });
